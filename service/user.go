@@ -14,6 +14,10 @@ type User struct {
 	feeStructure    FeeStructure      // Fee structure for the service
 }
 
+func (u *User) GetSupportedAssets() []gpchannel.Asset {
+	return u.supportedAssets
+}
+
 func (u *User) GetFees(assetsToFunds map[gpchannel.Asset][]*big.Int) (map[gpchannel.Asset]float64, error) {
 	panic("GetFees in user not implemented")
 }
