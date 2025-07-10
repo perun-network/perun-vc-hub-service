@@ -3,7 +3,10 @@ package service
 import (
 	"context"
 	"log"
+	"math/big"
 
+	gpchannel "perun.network/go-perun/channel"
+	basset "perun.network/perun-ckb-backend/channel/asset"
 	"perun.network/vc-hub-service/rpc/proto"
 )
 
@@ -30,5 +33,53 @@ func (s *HubService) GetAssetsByHub(ctx context.Context, req *proto.GetAssetsByH
 
 	return &proto.GetAssetsByHubResponse{
 		Assets: protoAssets,
+	}, nil
+}
+
+func (s *HubService) GetFees(ctx context.Context, req *proto.GetFeesRequest) (*proto.GetFeesResponse, error) {
+	// panic("GetFees not implemented")
+	assetsToFunds := make(map[gpchannel.Asset][]*big.Int)
+
+	for _, af := range req.AssetsToFund {
+		asset := new(basset.Asset)
+		if err := asset.UnmarshalBinary(af.Asset.Asset); err != nil {
+			log.Println("unable to unmarshal asset:", err)
+			continue
+		}
+		funds, err := BalanceDistributionToBigFloats(af.BalanceDistribution)
+		if err != nil {
+			log.Println("unable to convert balance distribution to big.Ints:", err)
+			continue
+		}
+		fundsInBigInt := make([]*big.Int, len(funds))
+		for i, f := range funds {
+			fundsInBigInt[i] = CKByteToShannon(f)
+		}
+		assetsToFunds[asset] = fundsInBigInt
+	}
+
+	// Call user to get fees
+	feeMap, err := s.user.GetFees(assetsToFunds)
+	if err != nil {
+		log.Println("unable to get fees from user:", err)
+		return &proto.GetFeesResponse{}, err
+	}
+	protoAssetFees := make([]*proto.AssetFee, 0, len(feeMap))
+	for asset, feeString := range feeMap {
+		gpasset, err := asset.MarshalBinary()
+		if err != nil {
+			log.Println("unable to marshal asset:", err)
+			continue
+		}
+		assetFee := proto.AssetFee{
+			Asset: &proto.Asset{
+				Asset: gpasset,
+			},
+			Fee: feeString,
+		}
+		protoAssetFees = append(protoAssetFees, &assetFee)
+	}
+	return &proto.GetFeesResponse{
+		AssetFees: protoAssetFees,
 	}, nil
 }

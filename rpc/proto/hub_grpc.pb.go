@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	VCHubService_GetAssetsByHub_FullMethodName = "/vc_hub.VCHubService/GetAssetsByHub"
+	VCHubService_GetFees_FullMethodName        = "/vc_hub.VCHubService/GetFees"
 )
 
 // VCHubServiceClient is the client API for VCHubService service.
@@ -28,6 +29,7 @@ const (
 type VCHubServiceClient interface {
 	// VC-Hub related RPCs
 	GetAssetsByHub(ctx context.Context, in *GetAssetsByHubRequest, opts ...grpc.CallOption) (*GetAssetsByHubResponse, error)
+	GetFees(ctx context.Context, in *GetFeesRequest, opts ...grpc.CallOption) (*GetFeesResponse, error)
 }
 
 type vCHubServiceClient struct {
@@ -48,12 +50,23 @@ func (c *vCHubServiceClient) GetAssetsByHub(ctx context.Context, in *GetAssetsBy
 	return out, nil
 }
 
+func (c *vCHubServiceClient) GetFees(ctx context.Context, in *GetFeesRequest, opts ...grpc.CallOption) (*GetFeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFeesResponse)
+	err := c.cc.Invoke(ctx, VCHubService_GetFees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VCHubServiceServer is the server API for VCHubService service.
 // All implementations must embed UnimplementedVCHubServiceServer
 // for forward compatibility.
 type VCHubServiceServer interface {
 	// VC-Hub related RPCs
 	GetAssetsByHub(context.Context, *GetAssetsByHubRequest) (*GetAssetsByHubResponse, error)
+	GetFees(context.Context, *GetFeesRequest) (*GetFeesResponse, error)
 	mustEmbedUnimplementedVCHubServiceServer()
 }
 
@@ -66,6 +79,9 @@ type UnimplementedVCHubServiceServer struct{}
 
 func (UnimplementedVCHubServiceServer) GetAssetsByHub(context.Context, *GetAssetsByHubRequest) (*GetAssetsByHubResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAssetsByHub not implemented")
+}
+func (UnimplementedVCHubServiceServer) GetFees(context.Context, *GetFeesRequest) (*GetFeesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFees not implemented")
 }
 func (UnimplementedVCHubServiceServer) mustEmbedUnimplementedVCHubServiceServer() {}
 func (UnimplementedVCHubServiceServer) testEmbeddedByValue()                      {}
@@ -106,6 +122,24 @@ func _VCHubService_GetAssetsByHub_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VCHubService_GetFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VCHubServiceServer).GetFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VCHubService_GetFees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VCHubServiceServer).GetFees(ctx, req.(*GetFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VCHubService_ServiceDesc is the grpc.ServiceDesc for VCHubService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -116,6 +150,10 @@ var VCHubService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAssetsByHub",
 			Handler:    _VCHubService_GetAssetsByHub_Handler,
+		},
+		{
+			MethodName: "GetFees",
+			Handler:    _VCHubService_GetFees_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

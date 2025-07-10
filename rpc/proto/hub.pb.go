@@ -191,6 +191,202 @@ func (x *GetAssetsByHubResponse) GetAssets() []*Asset {
 	return nil
 }
 
+type GetFeesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// amount : amount that this participant is going to fund
+	AssetsToFund  []*AssetAmount `protobuf:"bytes,1,rep,name=assets_to_fund,json=assetsToFund,proto3" json:"assets_to_fund,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeesRequest) Reset() {
+	*x = GetFeesRequest{}
+	mi := &file_hub_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeesRequest) ProtoMessage() {}
+
+func (x *GetFeesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeesRequest.ProtoReflect.Descriptor instead.
+func (*GetFeesRequest) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetFeesRequest) GetAssetsToFund() []*AssetAmount {
+	if x != nil {
+		return x.AssetsToFund
+	}
+	return nil
+}
+
+type AssetAmount struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Asset               *Asset                 `protobuf:"bytes,1,opt,name=asset,proto3" json:"asset,omitempty"`
+	BalanceDistribution []string               `protobuf:"bytes,2,rep,name=balance_distribution,json=balanceDistribution,proto3" json:"balance_distribution,omitempty"` // balance  distribution for each channel
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *AssetAmount) Reset() {
+	*x = AssetAmount{}
+	mi := &file_hub_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssetAmount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssetAmount) ProtoMessage() {}
+
+func (x *AssetAmount) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssetAmount.ProtoReflect.Descriptor instead.
+func (*AssetAmount) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AssetAmount) GetAsset() *Asset {
+	if x != nil {
+		return x.Asset
+	}
+	return nil
+}
+
+func (x *AssetAmount) GetBalanceDistribution() []string {
+	if x != nil {
+		return x.BalanceDistribution
+	}
+	return nil
+}
+
+// Fees levied for each asset for given funds.
+// User must pay at least this much to open a channel with the hub.
+type GetFeesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AssetFees     []*AssetFee            `protobuf:"bytes,1,rep,name=asset_fees,json=assetFees,proto3" json:"asset_fees,omitempty"` // The fees for each asset in the request
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeesResponse) Reset() {
+	*x = GetFeesResponse{}
+	mi := &file_hub_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeesResponse) ProtoMessage() {}
+
+func (x *GetFeesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeesResponse.ProtoReflect.Descriptor instead.
+func (*GetFeesResponse) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetFeesResponse) GetAssetFees() []*AssetFee {
+	if x != nil {
+		return x.AssetFees
+	}
+	return nil
+}
+
+// Asset and its corresponding  fee that must be paid
+type AssetFee struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Asset         *Asset                 `protobuf:"bytes,1,opt,name=asset,proto3" json:"asset,omitempty"` // The asset for which the fee is calculated
+	Fee           string                 `protobuf:"bytes,2,opt,name=fee,proto3" json:"fee,omitempty"`     // The fee amount in the specified network's currency
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssetFee) Reset() {
+	*x = AssetFee{}
+	mi := &file_hub_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssetFee) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssetFee) ProtoMessage() {}
+
+func (x *AssetFee) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssetFee.ProtoReflect.Descriptor instead.
+func (*AssetFee) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *AssetFee) GetAsset() *Asset {
+	if x != nil {
+		return x.Asset
+	}
+	return nil
+}
+
+func (x *AssetFee) GetFee() string {
+	if x != nil {
+		return x.Fee
+	}
+	return ""
+}
+
 var File_hub_proto protoreflect.FileDescriptor
 
 const file_hub_proto_rawDesc = "" +
@@ -203,9 +399,21 @@ const file_hub_proto_rawDesc = "" +
 	"\x05asset\x18\x01 \x01(\fR\x05asset\"\x17\n" +
 	"\x15GetAssetsByHubRequest\"?\n" +
 	"\x16GetAssetsByHubResponse\x12%\n" +
-	"\x06assets\x18\x01 \x03(\v2\r.vc_hub.AssetR\x06assets2_\n" +
+	"\x06assets\x18\x01 \x03(\v2\r.vc_hub.AssetR\x06assets\"K\n" +
+	"\x0eGetFeesRequest\x129\n" +
+	"\x0eassets_to_fund\x18\x01 \x03(\v2\x13.vc_hub.AssetAmountR\fassetsToFund\"e\n" +
+	"\vAssetAmount\x12#\n" +
+	"\x05asset\x18\x01 \x01(\v2\r.vc_hub.AssetR\x05asset\x121\n" +
+	"\x14balance_distribution\x18\x02 \x03(\tR\x13balanceDistribution\"B\n" +
+	"\x0fGetFeesResponse\x12/\n" +
+	"\n" +
+	"asset_fees\x18\x01 \x03(\v2\x10.vc_hub.AssetFeeR\tassetFees\"A\n" +
+	"\bAssetFee\x12#\n" +
+	"\x05asset\x18\x01 \x01(\v2\r.vc_hub.AssetR\x05asset\x12\x10\n" +
+	"\x03fee\x18\x02 \x01(\tR\x03fee2\x9b\x01\n" +
 	"\fVCHubService\x12O\n" +
-	"\x0eGetAssetsByHub\x12\x1d.vc_hub.GetAssetsByHubRequest\x1a\x1e.vc_hub.GetAssetsByHubResponseB\bZ\x06proto/b\x06proto3"
+	"\x0eGetAssetsByHub\x12\x1d.vc_hub.GetAssetsByHubRequest\x1a\x1e.vc_hub.GetAssetsByHubResponse\x12:\n" +
+	"\aGetFees\x12\x16.vc_hub.GetFeesRequest\x1a\x17.vc_hub.GetFeesResponseB\bZ\x06proto/b\x06proto3"
 
 var (
 	file_hub_proto_rawDescOnce sync.Once
@@ -219,22 +427,32 @@ func file_hub_proto_rawDescGZIP() []byte {
 	return file_hub_proto_rawDescData
 }
 
-var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_hub_proto_goTypes = []any{
 	(*Rejected)(nil),               // 0: vc_hub.Rejected
 	(*Asset)(nil),                  // 1: vc_hub.Asset
 	(*GetAssetsByHubRequest)(nil),  // 2: vc_hub.GetAssetsByHubRequest
 	(*GetAssetsByHubResponse)(nil), // 3: vc_hub.GetAssetsByHubResponse
+	(*GetFeesRequest)(nil),         // 4: vc_hub.GetFeesRequest
+	(*AssetAmount)(nil),            // 5: vc_hub.AssetAmount
+	(*GetFeesResponse)(nil),        // 6: vc_hub.GetFeesResponse
+	(*AssetFee)(nil),               // 7: vc_hub.AssetFee
 }
 var file_hub_proto_depIdxs = []int32{
 	1, // 0: vc_hub.GetAssetsByHubResponse.assets:type_name -> vc_hub.Asset
-	2, // 1: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
-	3, // 2: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	5, // 1: vc_hub.GetFeesRequest.assets_to_fund:type_name -> vc_hub.AssetAmount
+	1, // 2: vc_hub.AssetAmount.asset:type_name -> vc_hub.Asset
+	7, // 3: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
+	1, // 4: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
+	2, // 5: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
+	4, // 6: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
+	3, // 7: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
+	6, // 8: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_hub_proto_init() }
@@ -248,7 +466,7 @@ func file_hub_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hub_proto_rawDesc), len(file_hub_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

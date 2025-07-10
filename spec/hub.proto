@@ -9,7 +9,7 @@ package vc_hub;
 service VCHubService{
     // VC-Hub related RPCs
     rpc GetAssetsByHub(GetAssetsByHubRequest) returns (GetAssetsByHubResponse);
-      // rpc GetFees(GetFeesRequest) returns (GetFeesResponse);
+    rpc GetFees(GetFeesRequest) returns (GetFeesResponse);
     // rpc IsParticipantInNetwork(IsParticipantInNetworkRequest) returns (IsParticipantInNetworkResponse);
     // rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
 
@@ -50,32 +50,27 @@ message GetAssetsByHubResponse{
 // message GetPaymentAddrRequest{}
 // message GetPaymentAddrResponse{}
 
+message GetFeesRequest {
+    //amount : amount that this participant is going to fund
+    repeated AssetAmount assets_to_fund = 1;
+}
 
+message AssetAmount{
+    Asset asset = 1;
+    repeated string balance_distribution = 2;  // balance  distribution for each channel
+}
 
-// message GetFeesRequest {
-//     //amount : amount that this participant is going to fund
-//     repeated AssetAmount assets_to_fund = 1;
-// }
+// Fees levied for each asset for given funds.
+// User must pay at least this much to open a channel with the hub.
+message GetFeesResponse {
+    repeated AssetFee asset_fees = 1; // The fees for each asset in the request
+}
 
-// message AssetAmount{
-//     Asset asset = 1;
-//     // double funding_amount = 2; // TODO: Maybe make this a balance distribution, so that the hub owner can decide dynamicall whether to levy fees as x% of total funds or x % of funds the hub owner hast to put up
-//     repeated string balance_distribution = 2;  // balance  distribution for each channel
-
-// }
-
-// // Fees levied for each asset for given funds.
-// // User must pay at least this much to open a channel with the hub.
-// message GetFeesResponse {
-//     repeated AssetFee asset_fees = 1; // The fees for each asset in the request
-// }
-
-// // Asset and its corresponding  fee that must be paid
-// message AssetFee{
-//     Asset asset = 1; // The asset for which the fee is calculated
-//     string fee = 2; // The fee amount in the specified network's currency
-
-// }
+// Asset and its corresponding  fee that must be paid
+message AssetFee{
+    Asset asset = 1; // The asset for which the fee is calculated
+    string fee = 2; // The fee amount in the specified network's currency
+}
 
 
 
