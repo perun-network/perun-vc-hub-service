@@ -7,12 +7,14 @@ import (
 
 	gpchannel "perun.network/go-perun/channel"
 	basset "perun.network/perun-ckb-backend/channel/asset"
+	"perun.network/perun-ckb-backend/wallet/address"
 	"perun.network/vc-hub-service/rpc/proto"
 )
 
 type HubService struct {
 	proto.UnimplementedVCHubServiceServer //always embed for gRPC service impl.
 	user                                  *User
+	participants                          []address.Participant
 }
 
 func (s *HubService) GetAssetsByHub(ctx context.Context, req *proto.GetAssetsByHubRequest) (*proto.GetAssetsByHubResponse, error) {
@@ -81,5 +83,21 @@ func (s *HubService) GetFees(ctx context.Context, req *proto.GetFeesRequest) (*p
 	}
 	return &proto.GetFeesResponse{
 		AssetFees: protoAssetFees,
+	}, nil
+}
+
+// TODO: When a participant has a ledger channel with hub, then add it to the participants list.
+func (s *HubService) IsParticipantInNetwork(ctx context.Context, req *proto.IsParticipantInNetworkRequest) (*proto.IsParticipantInNetworkResponse, error) {
+	addrString := req.Address
+	for _, p := range s.participants {
+		if p.String() == addrString {
+			return &proto.IsParticipantInNetworkResponse{
+				IsInNetwork: true,
+			}, nil
+		}
+	}
+
+	return &proto.IsParticipantInNetworkResponse{
+		IsInNetwork: false,
 	}, nil
 }

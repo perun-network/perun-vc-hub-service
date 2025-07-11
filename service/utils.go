@@ -51,3 +51,32 @@ func BalanceDistributionToBigFloats(balanceDistribution []string) ([]*big.Float,
 
 	return result, nil
 }
+
+// // Convert single protobuf BigInt to *big.Int
+// func ProtoBigIntToBigInt(pb *pb.BigInt) *big.Int {
+// 	if pb == nil || len(pb.Data) == 0 {
+// 		return big.NewInt(0)
+// 	}
+// 	return new(big.Int).SetBytes(pb.Data)
+// }
+
+// // Convert *big.Int to protobuf BigInt
+// func BigIntToProtoBigInt(bi *big.Int) *pb.BigInt {
+// 	if bi == nil {
+// 		return &pb.BigInt{Data: []byte{}}
+// 	}
+// 	return &pb.BigInt{Data: bi.Bytes()}
+// }
+
+// // convert a slice of protobuf BigInts to a slice of *big.Int
+// func BalanceDistributionToBigInts(balanceDistribution []*pb.BigInt) []*big.Int {
+// 	if balanceDistribution == nil {
+// 		return nil
+// 	}
+
+// 	result := make([]*big.Int, len(balanceDistribution))
+// 	for i, protoBigInt := range balanceDistribution {
+// 		result[i] = ProtoBigIntToBigInt(protoBigInt)
+// 	}
+// 	return result
+// }

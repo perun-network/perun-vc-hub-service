@@ -10,7 +10,7 @@ service VCHubService{
     // VC-Hub related RPCs
     rpc GetAssetsByHub(GetAssetsByHubRequest) returns (GetAssetsByHubResponse);
     rpc GetFees(GetFeesRequest) returns (GetFeesResponse);
-    // rpc IsParticipantInNetwork(IsParticipantInNetworkRequest) returns (IsParticipantInNetworkResponse);
+    rpc IsParticipantInNetwork(IsParticipantInNetworkRequest) returns (IsParticipantInNetworkResponse);
     // rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
 
     // Perun related RPCs
@@ -34,13 +34,13 @@ message GetAssetsByHubResponse{
     repeated Asset assets = 1;
 }
 
-// message IsParticipantInNetworkRequest{
-//     string address = 1;
-// }
+message IsParticipantInNetworkRequest{
+    string address = 1;
+}
 
-// message IsParticipantInNetworkResponse{
-//     bool is_in_network = 1;
-// }
+message IsParticipantInNetworkResponse{
+    bool is_in_network = 1;
+}
 
 // // encoded big.Int in bytes
 // message BigInt {
