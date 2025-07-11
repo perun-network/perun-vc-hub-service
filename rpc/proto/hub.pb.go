@@ -279,6 +279,86 @@ func (x *IsParticipantInNetworkResponse) GetIsInNetwork() bool {
 	return false
 }
 
+type GetPaymentAddrRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPaymentAddrRequest) Reset() {
+	*x = GetPaymentAddrRequest{}
+	mi := &file_hub_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPaymentAddrRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPaymentAddrRequest) ProtoMessage() {}
+
+func (x *GetPaymentAddrRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPaymentAddrRequest.ProtoReflect.Descriptor instead.
+func (*GetPaymentAddrRequest) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{6}
+}
+
+type GetPaymentAddrResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	PaymentAddress string                 `protobuf:"bytes,1,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetPaymentAddrResponse) Reset() {
+	*x = GetPaymentAddrResponse{}
+	mi := &file_hub_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPaymentAddrResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPaymentAddrResponse) ProtoMessage() {}
+
+func (x *GetPaymentAddrResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPaymentAddrResponse.ProtoReflect.Descriptor instead.
+func (*GetPaymentAddrResponse) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetPaymentAddrResponse) GetPaymentAddress() string {
+	if x != nil {
+		return x.PaymentAddress
+	}
+	return ""
+}
+
 type GetFeesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// amount : amount that this participant is going to fund
@@ -289,7 +369,7 @@ type GetFeesRequest struct {
 
 func (x *GetFeesRequest) Reset() {
 	*x = GetFeesRequest{}
-	mi := &file_hub_proto_msgTypes[6]
+	mi := &file_hub_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -301,7 +381,7 @@ func (x *GetFeesRequest) String() string {
 func (*GetFeesRequest) ProtoMessage() {}
 
 func (x *GetFeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[6]
+	mi := &file_hub_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -314,7 +394,7 @@ func (x *GetFeesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeesRequest.ProtoReflect.Descriptor instead.
 func (*GetFeesRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{6}
+	return file_hub_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetFeesRequest) GetAssetsToFund() []*AssetAmount {
@@ -334,7 +414,7 @@ type AssetAmount struct {
 
 func (x *AssetAmount) Reset() {
 	*x = AssetAmount{}
-	mi := &file_hub_proto_msgTypes[7]
+	mi := &file_hub_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -346,7 +426,7 @@ func (x *AssetAmount) String() string {
 func (*AssetAmount) ProtoMessage() {}
 
 func (x *AssetAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[7]
+	mi := &file_hub_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -359,7 +439,7 @@ func (x *AssetAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetAmount.ProtoReflect.Descriptor instead.
 func (*AssetAmount) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{7}
+	return file_hub_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AssetAmount) GetAsset() *Asset {
@@ -387,7 +467,7 @@ type GetFeesResponse struct {
 
 func (x *GetFeesResponse) Reset() {
 	*x = GetFeesResponse{}
-	mi := &file_hub_proto_msgTypes[8]
+	mi := &file_hub_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -399,7 +479,7 @@ func (x *GetFeesResponse) String() string {
 func (*GetFeesResponse) ProtoMessage() {}
 
 func (x *GetFeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[8]
+	mi := &file_hub_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +492,7 @@ func (x *GetFeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeesResponse.ProtoReflect.Descriptor instead.
 func (*GetFeesResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{8}
+	return file_hub_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetFeesResponse) GetAssetFees() []*AssetFee {
@@ -433,7 +513,7 @@ type AssetFee struct {
 
 func (x *AssetFee) Reset() {
 	*x = AssetFee{}
-	mi := &file_hub_proto_msgTypes[9]
+	mi := &file_hub_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -445,7 +525,7 @@ func (x *AssetFee) String() string {
 func (*AssetFee) ProtoMessage() {}
 
 func (x *AssetFee) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[9]
+	mi := &file_hub_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -458,7 +538,7 @@ func (x *AssetFee) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetFee.ProtoReflect.Descriptor instead.
 func (*AssetFee) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{9}
+	return file_hub_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AssetFee) GetAsset() *Asset {
@@ -491,7 +571,10 @@ const file_hub_proto_rawDesc = "" +
 	"\x1dIsParticipantInNetworkRequest\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress\"D\n" +
 	"\x1eIsParticipantInNetworkResponse\x12\"\n" +
-	"\ris_in_network\x18\x01 \x01(\bR\visInNetwork\"K\n" +
+	"\ris_in_network\x18\x01 \x01(\bR\visInNetwork\"\x17\n" +
+	"\x15GetPaymentAddrRequest\"A\n" +
+	"\x16GetPaymentAddrResponse\x12'\n" +
+	"\x0fpayment_address\x18\x01 \x01(\tR\x0epaymentAddress\"K\n" +
 	"\x0eGetFeesRequest\x129\n" +
 	"\x0eassets_to_fund\x18\x01 \x03(\v2\x13.vc_hub.AssetAmountR\fassetsToFund\"e\n" +
 	"\vAssetAmount\x12#\n" +
@@ -502,11 +585,12 @@ const file_hub_proto_rawDesc = "" +
 	"asset_fees\x18\x01 \x03(\v2\x10.vc_hub.AssetFeeR\tassetFees\"A\n" +
 	"\bAssetFee\x12#\n" +
 	"\x05asset\x18\x01 \x01(\v2\r.vc_hub.AssetR\x05asset\x12\x10\n" +
-	"\x03fee\x18\x02 \x01(\tR\x03fee2\x84\x02\n" +
+	"\x03fee\x18\x02 \x01(\tR\x03fee2\xd8\x02\n" +
 	"\fVCHubService\x12O\n" +
 	"\x0eGetAssetsByHub\x12\x1d.vc_hub.GetAssetsByHubRequest\x1a\x1e.vc_hub.GetAssetsByHubResponse\x12:\n" +
 	"\aGetFees\x12\x16.vc_hub.GetFeesRequest\x1a\x17.vc_hub.GetFeesResponse\x12g\n" +
-	"\x16IsParticipantInNetwork\x12%.vc_hub.IsParticipantInNetworkRequest\x1a&.vc_hub.IsParticipantInNetworkResponseB\bZ\x06proto/b\x06proto3"
+	"\x16IsParticipantInNetwork\x12%.vc_hub.IsParticipantInNetworkRequest\x1a&.vc_hub.IsParticipantInNetworkResponse\x12R\n" +
+	"\x11GetPaymentAddress\x12\x1d.vc_hub.GetPaymentAddrRequest\x1a\x1e.vc_hub.GetPaymentAddrResponseB\bZ\x06proto/b\x06proto3"
 
 var (
 	file_hub_proto_rawDescOnce sync.Once
@@ -520,7 +604,7 @@ func file_hub_proto_rawDescGZIP() []byte {
 	return file_hub_proto_rawDescData
 }
 
-var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_hub_proto_goTypes = []any{
 	(*Rejected)(nil),                       // 0: vc_hub.Rejected
 	(*Asset)(nil),                          // 1: vc_hub.Asset
@@ -528,28 +612,32 @@ var file_hub_proto_goTypes = []any{
 	(*GetAssetsByHubResponse)(nil),         // 3: vc_hub.GetAssetsByHubResponse
 	(*IsParticipantInNetworkRequest)(nil),  // 4: vc_hub.IsParticipantInNetworkRequest
 	(*IsParticipantInNetworkResponse)(nil), // 5: vc_hub.IsParticipantInNetworkResponse
-	(*GetFeesRequest)(nil),                 // 6: vc_hub.GetFeesRequest
-	(*AssetAmount)(nil),                    // 7: vc_hub.AssetAmount
-	(*GetFeesResponse)(nil),                // 8: vc_hub.GetFeesResponse
-	(*AssetFee)(nil),                       // 9: vc_hub.AssetFee
+	(*GetPaymentAddrRequest)(nil),          // 6: vc_hub.GetPaymentAddrRequest
+	(*GetPaymentAddrResponse)(nil),         // 7: vc_hub.GetPaymentAddrResponse
+	(*GetFeesRequest)(nil),                 // 8: vc_hub.GetFeesRequest
+	(*AssetAmount)(nil),                    // 9: vc_hub.AssetAmount
+	(*GetFeesResponse)(nil),                // 10: vc_hub.GetFeesResponse
+	(*AssetFee)(nil),                       // 11: vc_hub.AssetFee
 }
 var file_hub_proto_depIdxs = []int32{
-	1, // 0: vc_hub.GetAssetsByHubResponse.assets:type_name -> vc_hub.Asset
-	7, // 1: vc_hub.GetFeesRequest.assets_to_fund:type_name -> vc_hub.AssetAmount
-	1, // 2: vc_hub.AssetAmount.asset:type_name -> vc_hub.Asset
-	9, // 3: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
-	1, // 4: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
-	2, // 5: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
-	6, // 6: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
-	4, // 7: vc_hub.VCHubService.IsParticipantInNetwork:input_type -> vc_hub.IsParticipantInNetworkRequest
-	3, // 8: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
-	8, // 9: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
-	5, // 10: vc_hub.VCHubService.IsParticipantInNetwork:output_type -> vc_hub.IsParticipantInNetworkResponse
-	8, // [8:11] is the sub-list for method output_type
-	5, // [5:8] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	1,  // 0: vc_hub.GetAssetsByHubResponse.assets:type_name -> vc_hub.Asset
+	9,  // 1: vc_hub.GetFeesRequest.assets_to_fund:type_name -> vc_hub.AssetAmount
+	1,  // 2: vc_hub.AssetAmount.asset:type_name -> vc_hub.Asset
+	11, // 3: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
+	1,  // 4: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
+	2,  // 5: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
+	8,  // 6: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
+	4,  // 7: vc_hub.VCHubService.IsParticipantInNetwork:input_type -> vc_hub.IsParticipantInNetworkRequest
+	6,  // 8: vc_hub.VCHubService.GetPaymentAddress:input_type -> vc_hub.GetPaymentAddrRequest
+	3,  // 9: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
+	10, // 10: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
+	5,  // 11: vc_hub.VCHubService.IsParticipantInNetwork:output_type -> vc_hub.IsParticipantInNetworkResponse
+	7,  // 12: vc_hub.VCHubService.GetPaymentAddress:output_type -> vc_hub.GetPaymentAddrResponse
+	9,  // [9:13] is the sub-list for method output_type
+	5,  // [5:9] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_hub_proto_init() }
@@ -563,7 +651,7 @@ func file_hub_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hub_proto_rawDesc), len(file_hub_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

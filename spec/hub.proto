@@ -11,7 +11,7 @@ service VCHubService{
     rpc GetAssetsByHub(GetAssetsByHubRequest) returns (GetAssetsByHubResponse);
     rpc GetFees(GetFeesRequest) returns (GetFeesResponse);
     rpc IsParticipantInNetwork(IsParticipantInNetworkRequest) returns (IsParticipantInNetworkResponse);
-    // rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
+    rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
 
     // Perun related RPCs
     // rpc OpenChannel(ChannelOpenRequest) returns (ChannelOpenResponse);
@@ -47,8 +47,10 @@ message IsParticipantInNetworkResponse{
 //     bytes data = 1;
 // }
 
-// message GetPaymentAddrRequest{}
-// message GetPaymentAddrResponse{}
+message GetPaymentAddrRequest{}
+message GetPaymentAddrResponse{
+    string payment_address = 1;
+}
 
 message GetFeesRequest {
     //amount : amount that this participant is going to fund

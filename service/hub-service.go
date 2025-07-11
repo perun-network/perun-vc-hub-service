@@ -15,6 +15,7 @@ type HubService struct {
 	proto.UnimplementedVCHubServiceServer //always embed for gRPC service impl.
 	user                                  *User
 	participants                          []address.Participant
+	addr                                  address.Participant
 }
 
 func (s *HubService) GetAssetsByHub(ctx context.Context, req *proto.GetAssetsByHubRequest) (*proto.GetAssetsByHubResponse, error) {
@@ -99,5 +100,12 @@ func (s *HubService) IsParticipantInNetwork(ctx context.Context, req *proto.IsPa
 
 	return &proto.IsParticipantInNetworkResponse{
 		IsInNetwork: false,
+	}, nil
+}
+
+func (s *HubService) GetPaymentAddress(ctx context.Context, req *proto.GetPaymentAddrRequest) (*proto.GetPaymentAddrResponse, error) {
+	paymentAddr := s.addr.String()
+	return &proto.GetPaymentAddrResponse{
+		PaymentAddress: paymentAddr,
 	}, nil
 }
