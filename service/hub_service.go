@@ -5,10 +5,23 @@ import (
 	"log"
 	"math/big"
 
+	address2 "github.com/nervosnetwork/ckb-sdk-go/v2/address"
+	ckbrpc "github.com/nervosnetwork/ckb-sdk-go/v2/rpc"
+	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
+	"github.com/perun-network/perun-libp2p-wire/p2p"
 	gpchannel "perun.network/go-perun/channel"
+	"perun.network/go-perun/channel/persistence"
+	gpwallet "perun.network/go-perun/wallet"
+	"perun.network/go-perun/watcher/local"
+	"perun.network/go-perun/wire"
+	"perun.network/perun-ckb-backend/backend"
+	"perun.network/perun-ckb-backend/channel/adjudicator"
 	basset "perun.network/perun-ckb-backend/channel/asset"
+	"perun.network/perun-ckb-backend/channel/funder"
+	"perun.network/perun-ckb-backend/client"
 	"perun.network/perun-ckb-backend/wallet/address"
 	"perun.network/vc-hub-service/rpc/proto"
+	"perun.network/vc-hub-service/wallet"
 )
 
 type HubService struct {
@@ -16,6 +29,42 @@ type HubService struct {
 	user                                  *User
 	participants                          []address.Participant
 	addr                                  address.Participant
+	wsc                                   proto.WalletServiceClient
+	net                                   *p2p.Net
+	network                               types.Network
+	node                                  ckbrpc.Client
+	deployment                            backend.Deployment
+	wallet                                gpwallet.Wallet
+	wireAddr                              wire.Address
+	resolver                              AddressResolver
+	pr                                    persistence.PersistRestorer
+}
+
+// InitializeUser initializes a user with the given participant.
+func (s *HubService) InitializeUser(participant address.Participant, wsc proto.WalletServiceClient, w gpwallet.Wallet) (*User, error) {
+	log.Printf("Initializing user %s", participant)
+
+	wAddr, err := s.SetWireAddress(participant)
+	if err != nil {
+		return nil, err
+	}
+	rs := wallet.NewRemoteSigner(wsc, s.ToCKBAddress(participant), &participant)
+	ckbClient, err := client.NewClient(s.node, rs, s.deployment)
+	if err != nil {
+		return nil, err
+	}
+	f := funder.NewDefaultFunder(ckbClient, s.deployment)
+	adj := adjudicator.NewAdjudicator(ckbClient)
+	watcher, err := local.NewWatcher(adj)
+	if err != nil {
+		return nil, err
+	}
+	usr, err := NewUser(participant, wAddr, s.net.Bus, f, adj, w, watcher, wsc, s.pr)
+	if err != nil {
+		return nil, err
+	}
+	s.user = usr
+	return usr, nil
 }
 
 func (s *HubService) GetAssetsByHub(ctx context.Context, req *proto.GetAssetsByHubRequest) (*proto.GetAssetsByHubResponse, error) {
@@ -108,4 +157,14 @@ func (s *HubService) GetPaymentAddress(ctx context.Context, req *proto.GetPaymen
 	return &proto.GetPaymentAddrResponse{
 		PaymentAddress: paymentAddr,
 	}, nil
+}
+
+// SetWireAddress sets the wire address for the given participant.
+func (s HubService) SetWireAddress(participant address.Participant) (wire.Address, error) {
+	return s.wireAddr, s.resolver.SetWire(&participant, s.wireAddr)
+}
+
+// ToCKBAddress converts a participant address to a CKB address.
+func (s HubService) ToCKBAddress(addr address.Participant) address2.Address {
+	return addr.ToCKBAddress(s.network)
 }

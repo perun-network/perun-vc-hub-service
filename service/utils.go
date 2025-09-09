@@ -3,6 +3,10 @@ package service
 import (
 	"fmt"
 	"math/big"
+
+	"perun.network/go-perun/channel"
+	"perun.network/go-perun/wire/protobuf"
+	"perun.network/perun-ckb-backend/channel/asset"
 )
 
 // CKByteToShannon converts a given amount in CKByte to Shannon.
@@ -52,31 +56,33 @@ func BalanceDistributionToBigFloats(balanceDistribution []string) ([]*big.Float,
 	return result, nil
 }
 
-// // Convert single protobuf BigInt to *big.Int
-// func ProtoBigIntToBigInt(pb *pb.BigInt) *big.Int {
-// 	if pb == nil || len(pb.Data) == 0 {
-// 		return big.NewInt(0)
-// 	}
-// 	return new(big.Int).SetBytes(pb.Data)
-// }
+func toCKBAllocation(protoAlloc *protobuf.Allocation) (*channel.Allocation, error) {
+	alloc := &channel.Allocation{}
+	alloc.Assets = make([]channel.Asset, len(protoAlloc.Assets))
+	for i := range protoAlloc.Assets {
+		// NOTE: We will assume the first asset will always be CKBytes.
+		if i == 0 {
+			alloc.Assets[i] = &asset.Asset{
+				IsCKBytes: true,
+				SUDT:      nil,
+			}
+		} else {
+			alloc.Assets[i] = channel.NewAsset()
+		}
+		err := alloc.Assets[i].UnmarshalBinary(protoAlloc.Assets[i])
+		if err != nil {
+			return nil, fmt.Errorf("%d'th asset: %w", i, err)
+		}
+	}
+	alloc.Locked = make([]channel.SubAlloc, len(protoAlloc.Locked))
+	for i := range protoAlloc.Locked {
+		locked, err := protobuf.ToSubAlloc(protoAlloc.Locked[i])
+		if err != nil {
+			return nil, fmt.Errorf("%d'th sub alloc: %w", i, err)
+		}
+		alloc.Locked[i] = locked
+	}
+	alloc.Balances = protobuf.ToBalances(protoAlloc.Balances)
 
-// // Convert *big.Int to protobuf BigInt
-// func BigIntToProtoBigInt(bi *big.Int) *pb.BigInt {
-// 	if bi == nil {
-// 		return &pb.BigInt{Data: []byte{}}
-// 	}
-// 	return &pb.BigInt{Data: bi.Bytes()}
-// }
-
-// // convert a slice of protobuf BigInts to a slice of *big.Int
-// func BalanceDistributionToBigInts(balanceDistribution []*pb.BigInt) []*big.Int {
-// 	if balanceDistribution == nil {
-// 		return nil
-// 	}
-
-// 	result := make([]*big.Int, len(balanceDistribution))
-// 	for i, protoBigInt := range balanceDistribution {
-// 		result[i] = ProtoBigIntToBigInt(protoBigInt)
-// 	}
-// 	return result
-// }
+	return alloc, nil
+}

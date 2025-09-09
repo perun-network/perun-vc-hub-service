@@ -1,26 +1,62 @@
 package service
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"math/big"
 
-	gpchannel "perun.network/go-perun/channel"
+	"perun.network/go-perun/channel"
+	"perun.network/go-perun/channel/persistence"
+	"perun.network/go-perun/client"
+	gpwallet "perun.network/go-perun/wallet"
+	"perun.network/go-perun/watcher"
+	"perun.network/go-perun/wire"
+	"perun.network/go-perun/wire/protobuf"
+
+	"perun.network/perun-ckb-backend/wallet/address"
+
+	"perun.network/vc-hub-service/protocol"
+	"perun.network/vc-hub-service/rpc/proto"
 )
 
 // User represent the owner of this hub-service
 // The owner can set the assets supported by this service
 // The owner can set a Fee structure for the service
 type User struct {
-	supportedAssets []gpchannel.Asset // List of assets supported by this service
-	feeStructure    FeeStructure      // Fee structure for the service
+	supportedAssets []channel.Asset       // List of assets supported by this service
+	feeStructure    protocol.FeeStructure // Fee structure for the service
+	Participant     address.Participant
+	PerunClient     *client.Client
+	WireAddress     wire.Address
+	wsc             proto.WalletServiceClient
+	Channels        map[channel.ID]*client.Channel // Active channels of the user
 }
 
-func (u *User) GetSupportedAssets() []gpchannel.Asset {
+func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc proto.WalletServiceClient, pr persistence.PersistRestorer) (*User, error) {
+	c, err := client.New(wAddr, bus, funder, adjudicator, wallet, watcher)
+	c.EnablePersistence(pr)
+	if err != nil {
+		return nil, err
+	}
+	u := &User{
+		Participant: participant,
+		PerunClient: c,
+		WireAddress: wAddr,
+		wsc:         wsc,
+		Channels:    make(map[channel.ID]*client.Channel),
+	}
+	go c.Handle(u, u)
+	return u, nil
+}
+
+func (u *User) GetSupportedAssets() []channel.Asset {
 	return u.supportedAssets
 }
 
-func (u *User) GetFees(assetsToFunds map[gpchannel.Asset][]*big.Int) (map[gpchannel.Asset]string, error) {
+func (u *User) GetFees(assetsToFunds map[channel.Asset][]*big.Int) (map[channel.Asset]string, error) {
 	// panic("GetFees in user not implemented")
-	fees := make(map[gpchannel.Asset]string)
+	fees := make(map[channel.Asset]string)
 	for asset, funds := range assetsToFunds {
 		fee, err := u.feeStructure.GetFee(asset, funds)
 		if err != nil {
@@ -31,7 +67,44 @@ func (u *User) GetFees(assetsToFunds map[gpchannel.Asset][]*big.Int) (map[gpchan
 	return fees, nil
 }
 
-type FeeStructure interface {
-	//Calculates and returns the fee for the given asset and balance distribution
-	GetFee(asset gpchannel.Asset, funds []*big.Int) (*big.Int, error)
+// startWatching starts the dispute watcher for the specified channel.
+func (u *User) startWatching(ch *client.Channel) {
+	go func() {
+		err := ch.Watch(u)
+		if err != nil {
+			fmt.Printf("Watcher returned with error: %v", err)
+		}
+	}()
+}
+
+// NotifyAllState notifies the wallet service about the new state of the channel.
+func (u *User) NotifyAllState(_, to *channel.State) {
+	pbNewState, err := protobuf.FromState(to.Clone())
+	if err != nil {
+		panic(fmt.Sprintf("unable to encode state: %v", err))
+	}
+
+	resp, err := u.wsc.UpdateNotification(context.TODO(), &proto.UpdateNotificationRequest{
+		State: pbNewState,
+	})
+	if err != nil {
+		panic(fmt.Sprintf("unable to send update notification to wallet: %v", err))
+	}
+	if !resp.GetAccepted() {
+		panic("wallet rejected update")
+	}
+}
+
+func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client.ProposalResponder) {
+	panic("not implemented")
+}
+
+func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, responder *client.UpdateResponder) {
+	panic("not implemented")
+}
+
+// HandleAdjudicatorEvent handles an adjudicator event.
+func (u *User) HandleAdjudicatorEvent(event channel.AdjudicatorEvent) {
+	// TODO:
+	log.Printf("Adjudicator event: type = %T\n", event)
 }

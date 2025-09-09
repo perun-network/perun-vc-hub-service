@@ -14,10 +14,9 @@ service VCHubService{
     rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
 
     // Perun related RPCs
-    // rpc OpenChannel(ChannelOpenRequest) returns (ChannelOpenResponse);
-    // rpc UpdateChannel(ChannelUpdateRequest) returns (ChannelUpdateResponse);
-    // rpc CloseChannel(ChannelCloseRequest) returns (ChannelCloseResponse);
-    // rpc GetChannels(GetChannelsRequest) returns (GetChannelsResponse);
+    rpc UpdateChannel(ChannelUpdateRequest) returns (ChannelUpdateResponse);
+    rpc CloseChannel(ChannelCloseRequest) returns (ChannelCloseResponse);
+    rpc GetChannels(GetChannelsRequest) returns (GetChannelsResponse);
 }
 
 // Generic rejected message. Returned by any endpoint on failure.
@@ -76,68 +75,50 @@ message AssetFee{
 
 
 
-// message GetChannelsRequest {
-//   // The channel id of the channel to be closed.
-//   bytes requester = 1;
-// }
+message GetChannelsRequest {
+  // The channel id of the channel to be closed.
+  bytes requester = 1;
+}
 
-// message GetChannelsResponse {
-//   oneof msg {
-//     Rejected rejected = 1;
-//     perunwire.State state = 2;
-//   }
-// }
+message GetChannelsResponse {
+  oneof msg {
+    Rejected rejected = 1;
+    perunwire.State state = 2;
+  }
+}
 
-// message ChannelOpenRequest {
-//   // The identity of the requester.
-//   bytes requester = 1;
-//   // Identity of the peer to open the channel with.
-//   bytes peer = 2;
-//   // The desired allocation of funds within said channel.
-//   perunwire.Allocation allocation = 3;
-//   // The duration of the challenge period.
-//   uint64 challenge_duration = 4;
-// }
+message ChannelUpdateRequest {
+  // The state with which the channel should be updated.
+  perunwire.State state = 1;
+}
 
-// message ChannelOpenResponse {
-//   oneof msg {
-//     Rejected rejected = 1;
-//     bytes channel_id = 2;
-//   }
-// }
+message SuccessfulUpdate {
+  // The state with which the channel was updated.
+  perunwire.State state = 1;
+  // The channel id of the channel which was updated.
+  bytes channel_id = 2;
+}
 
-// message ChannelUpdateRequest {
-//   // The state with which the channel should be updated.
-//   perunwire.State state = 1;
-// }
+message ChannelUpdateResponse {
+  oneof msg {
+    Rejected rejected = 1;
+    SuccessfulUpdate update = 2;
+  }
+}
 
-// message SuccessfulUpdate {
-//   // The state with which the channel was updated.
-//   perunwire.State state = 1;
-//   // The channel id of the channel which was updated.
-//   bytes channel_id = 2;
-// }
+message ChannelCloseRequest {
+  // The channel id of the channel to be closed.
+  bytes channel_id = 1;
+}
 
-// message ChannelUpdateResponse {
-//   oneof msg {
-//     Rejected rejected = 1;
-//     SuccessfulUpdate update = 2;
-//   }
-// }
+message SuccessfulClose {
+  // The channel id of the channel which was closed.
+  bytes channel_id = 1;
+}
 
-// message ChannelCloseRequest {
-//   // The channel id of the channel to be closed.
-//   bytes channel_id = 1;
-// }
-
-// message SuccessfulClose {
-//   // The channel id of the channel which was closed.
-//   bytes channel_id = 1;
-// }
-
-// message ChannelCloseResponse {
-//   oneof msg {
-//     Rejected rejected = 1;
-//     SuccessfulClose close = 2;
-//   }
-// }
+message ChannelCloseResponse {
+  oneof msg {
+    Rejected rejected = 1;
+    SuccessfulClose close = 2;
+  }
+}
