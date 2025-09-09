@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 
+	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
 	"perun.network/go-perun/channel"
 	"perun.network/go-perun/channel/persistence"
 	"perun.network/go-perun/client"
@@ -26,6 +27,7 @@ import (
 type User struct {
 	supportedAssets []channel.Asset       // List of assets supported by this service
 	feeStructure    protocol.FeeStructure // Fee structure for the service
+	feeWatcher      protocol.Watcher      // Watcher to verify on-chain fees have been paid
 	Participant     address.Participant
 	PerunClient     *client.Client
 	WireAddress     wire.Address
@@ -95,8 +97,76 @@ func (u *User) NotifyAllState(_, to *channel.State) {
 	}
 }
 
+func (u *User) verifyOnChainFees(alloc *channel.Allocation) bool {
+	// for each asset in allocation, verify whether fees have been paid.
+	for idx, asset := range alloc.Assets {
+		if ok := u.feeWatcher.FeesPaidForAsset(asset, alloc.Balances[idx]); !ok {
+			log.Println("Fees not paid for asset:", asset, "at index ", idx)
+			return false
+		}
+	}
+	return true
+}
+
+// checks if fees have been paid online and only then accepts the channel proposal
 func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client.ProposalResponder) {
-	panic("not implemented")
+	addr, err := u.Participant.ToCKBAddress(types.NetworkTest).Encode()
+	if err != nil {
+		panic(fmt.Sprintf("encoding participant addr: %v", err))
+	}
+	log.Printf("Handling channel proposal as user: %s", u.Participant)
+	log.Printf("Handling channel proposal as user: %s", addr)
+
+	lcp, ok := proposal.(*client.LedgerChannelProposalMsg) // HandleProposal should never receive a vc proposal
+	if !ok {
+		_ = responder.Reject(context.TODO(), "only ledger channel proposals are supported")
+		return
+	}
+	log.Println("Verifying on-chain fees have been paid")
+	if !u.verifyOnChainFees(lcp.Base().InitBals) {
+		_ = responder.Reject(context.TODO(), "on-chain fees have not been paid")
+		return
+	}
+	pLcp, err := protobuf.FromLedgerChannelProposalMsg(lcp)
+	if err != nil {
+		_ = responder.Reject(context.TODO(), fmt.Sprintf("unable to encode proposal: %v", err))
+		return
+	}
+
+	log.Println("Requesting nonce share from wallet")
+	resp, err := u.wsc.OpenChannel(context.TODO(), &proto.OpenChannelRequest{Proposal: pLcp.LedgerChannelProposalMsg})
+	if err != nil {
+		_ = responder.Reject(context.TODO(), fmt.Sprintf("unable to open channel: %v", err))
+		return
+	}
+	log.Println("Received nonce share from wallet")
+	ns := resp.GetNonceShare()
+	if ns == nil {
+		if resp.GetRejected() != nil {
+			_ = responder.Reject(context.TODO(), resp.GetRejected().GetReason())
+			return
+		} else {
+			_ = responder.Reject(context.TODO(), "wallet rejected channel proposal")
+			return
+		}
+	}
+	nonceShare := client.NonceShare{}
+	copy(nonceShare[:], ns)
+	cpa := client.LedgerChannelProposalAccMsg{
+		BaseChannelProposalAcc: client.BaseChannelProposalAcc{
+			ProposalID: lcp.ProposalID,
+			NonceShare: nonceShare,
+		},
+		Participant: &u.Participant,
+	}
+	ch, err := responder.Accept(context.TODO(), &cpa)
+	if err != nil {
+		panic(err)
+	}
+	u.Channels[ch.ID()] = ch
+	u.startWatching(ch)
+	ch.OnUpdate(u.NotifyAllState)
+	u.NotifyAllState(nil, ch.State())
 }
 
 func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, responder *client.UpdateResponder) {
