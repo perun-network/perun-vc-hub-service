@@ -170,7 +170,9 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 }
 
 func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, responder *client.UpdateResponder) {
-	panic("not implemented")
+	//a hub service should never recive an update unless we have a recurring fee model
+	//TODO: implement this when we have a recurring fee model
+	_ = responder.Reject(context.TODO(), "channel updates are not supported")
 }
 
 // HandleAdjudicatorEvent handles an adjudicator event.
