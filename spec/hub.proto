@@ -83,8 +83,14 @@ message GetChannelsRequest {
 message GetChannelsResponse {
   oneof msg {
     Rejected rejected = 1;
-    perunwire.State state = 2;
+    ChannelStates channel_states = 2;
   }
+}
+
+//for channel with state at index i, actor is at index i
+message ChannelStates{
+  repeated perunwire.State states = 1;
+  repeated uint32 actor_idxs = 2; 
 }
 
 message ChannelUpdateRequest {

@@ -605,7 +605,7 @@ type GetChannelsResponse struct {
 	// Types that are valid to be assigned to Msg:
 	//
 	//	*GetChannelsResponse_Rejected
-	//	*GetChannelsResponse_State
+	//	*GetChannelsResponse_ChannelStates
 	Msg           isGetChannelsResponse_Msg `protobuf_oneof:"msg"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -657,10 +657,10 @@ func (x *GetChannelsResponse) GetRejected() *Rejected {
 	return nil
 }
 
-func (x *GetChannelsResponse) GetState() *protobuf.State {
+func (x *GetChannelsResponse) GetChannelStates() *ChannelStates {
 	if x != nil {
-		if x, ok := x.Msg.(*GetChannelsResponse_State); ok {
-			return x.State
+		if x, ok := x.Msg.(*GetChannelsResponse_ChannelStates); ok {
+			return x.ChannelStates
 		}
 	}
 	return nil
@@ -674,13 +674,66 @@ type GetChannelsResponse_Rejected struct {
 	Rejected *Rejected `protobuf:"bytes,1,opt,name=rejected,proto3,oneof"`
 }
 
-type GetChannelsResponse_State struct {
-	State *protobuf.State `protobuf:"bytes,2,opt,name=state,proto3,oneof"`
+type GetChannelsResponse_ChannelStates struct {
+	ChannelStates *ChannelStates `protobuf:"bytes,2,opt,name=channel_states,json=channelStates,proto3,oneof"`
 }
 
 func (*GetChannelsResponse_Rejected) isGetChannelsResponse_Msg() {}
 
-func (*GetChannelsResponse_State) isGetChannelsResponse_Msg() {}
+func (*GetChannelsResponse_ChannelStates) isGetChannelsResponse_Msg() {}
+
+// for channel with state at index i, actor is at index i
+type ChannelStates struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	States        []*protobuf.State      `protobuf:"bytes,1,rep,name=states,proto3" json:"states,omitempty"`
+	ActorIdxs     []uint32               `protobuf:"varint,2,rep,packed,name=actor_idxs,json=actorIdxs,proto3" json:"actor_idxs,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChannelStates) Reset() {
+	*x = ChannelStates{}
+	mi := &file_hub_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelStates) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelStates) ProtoMessage() {}
+
+func (x *ChannelStates) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelStates.ProtoReflect.Descriptor instead.
+func (*ChannelStates) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ChannelStates) GetStates() []*protobuf.State {
+	if x != nil {
+		return x.States
+	}
+	return nil
+}
+
+func (x *ChannelStates) GetActorIdxs() []uint32 {
+	if x != nil {
+		return x.ActorIdxs
+	}
+	return nil
+}
 
 type ChannelUpdateRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -692,7 +745,7 @@ type ChannelUpdateRequest struct {
 
 func (x *ChannelUpdateRequest) Reset() {
 	*x = ChannelUpdateRequest{}
-	mi := &file_hub_proto_msgTypes[14]
+	mi := &file_hub_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -704,7 +757,7 @@ func (x *ChannelUpdateRequest) String() string {
 func (*ChannelUpdateRequest) ProtoMessage() {}
 
 func (x *ChannelUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[14]
+	mi := &file_hub_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -717,7 +770,7 @@ func (x *ChannelUpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelUpdateRequest.ProtoReflect.Descriptor instead.
 func (*ChannelUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{14}
+	return file_hub_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ChannelUpdateRequest) GetState() *protobuf.State {
@@ -739,7 +792,7 @@ type SuccessfulUpdate struct {
 
 func (x *SuccessfulUpdate) Reset() {
 	*x = SuccessfulUpdate{}
-	mi := &file_hub_proto_msgTypes[15]
+	mi := &file_hub_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -751,7 +804,7 @@ func (x *SuccessfulUpdate) String() string {
 func (*SuccessfulUpdate) ProtoMessage() {}
 
 func (x *SuccessfulUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[15]
+	mi := &file_hub_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -764,7 +817,7 @@ func (x *SuccessfulUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessfulUpdate.ProtoReflect.Descriptor instead.
 func (*SuccessfulUpdate) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{15}
+	return file_hub_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SuccessfulUpdate) GetState() *protobuf.State {
@@ -794,7 +847,7 @@ type ChannelUpdateResponse struct {
 
 func (x *ChannelUpdateResponse) Reset() {
 	*x = ChannelUpdateResponse{}
-	mi := &file_hub_proto_msgTypes[16]
+	mi := &file_hub_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -806,7 +859,7 @@ func (x *ChannelUpdateResponse) String() string {
 func (*ChannelUpdateResponse) ProtoMessage() {}
 
 func (x *ChannelUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[16]
+	mi := &file_hub_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -819,7 +872,7 @@ func (x *ChannelUpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelUpdateResponse.ProtoReflect.Descriptor instead.
 func (*ChannelUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{16}
+	return file_hub_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ChannelUpdateResponse) GetMsg() isChannelUpdateResponse_Msg {
@@ -873,7 +926,7 @@ type ChannelCloseRequest struct {
 
 func (x *ChannelCloseRequest) Reset() {
 	*x = ChannelCloseRequest{}
-	mi := &file_hub_proto_msgTypes[17]
+	mi := &file_hub_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -885,7 +938,7 @@ func (x *ChannelCloseRequest) String() string {
 func (*ChannelCloseRequest) ProtoMessage() {}
 
 func (x *ChannelCloseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[17]
+	mi := &file_hub_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -898,7 +951,7 @@ func (x *ChannelCloseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelCloseRequest.ProtoReflect.Descriptor instead.
 func (*ChannelCloseRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{17}
+	return file_hub_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ChannelCloseRequest) GetChannelId() []byte {
@@ -918,7 +971,7 @@ type SuccessfulClose struct {
 
 func (x *SuccessfulClose) Reset() {
 	*x = SuccessfulClose{}
-	mi := &file_hub_proto_msgTypes[18]
+	mi := &file_hub_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -930,7 +983,7 @@ func (x *SuccessfulClose) String() string {
 func (*SuccessfulClose) ProtoMessage() {}
 
 func (x *SuccessfulClose) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[18]
+	mi := &file_hub_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -943,7 +996,7 @@ func (x *SuccessfulClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessfulClose.ProtoReflect.Descriptor instead.
 func (*SuccessfulClose) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{18}
+	return file_hub_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SuccessfulClose) GetChannelId() []byte {
@@ -966,7 +1019,7 @@ type ChannelCloseResponse struct {
 
 func (x *ChannelCloseResponse) Reset() {
 	*x = ChannelCloseResponse{}
-	mi := &file_hub_proto_msgTypes[19]
+	mi := &file_hub_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1031,7 @@ func (x *ChannelCloseResponse) String() string {
 func (*ChannelCloseResponse) ProtoMessage() {}
 
 func (x *ChannelCloseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[19]
+	mi := &file_hub_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1044,7 @@ func (x *ChannelCloseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelCloseResponse.ProtoReflect.Descriptor instead.
 func (*ChannelCloseResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{19}
+	return file_hub_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ChannelCloseResponse) GetMsg() isChannelCloseResponse_Msg {
@@ -1067,11 +1120,15 @@ const file_hub_proto_rawDesc = "" +
 	"\x05asset\x18\x01 \x01(\v2\r.vc_hub.AssetR\x05asset\x12\x10\n" +
 	"\x03fee\x18\x02 \x01(\tR\x03fee\"2\n" +
 	"\x12GetChannelsRequest\x12\x1c\n" +
-	"\trequester\x18\x01 \x01(\fR\trequester\"v\n" +
+	"\trequester\x18\x01 \x01(\fR\trequester\"\x8c\x01\n" +
 	"\x13GetChannelsResponse\x12.\n" +
-	"\brejected\x18\x01 \x01(\v2\x10.vc_hub.RejectedH\x00R\brejected\x12(\n" +
-	"\x05state\x18\x02 \x01(\v2\x10.perunwire.StateH\x00R\x05stateB\x05\n" +
-	"\x03msg\">\n" +
+	"\brejected\x18\x01 \x01(\v2\x10.vc_hub.RejectedH\x00R\brejected\x12>\n" +
+	"\x0echannel_states\x18\x02 \x01(\v2\x15.vc_hub.ChannelStatesH\x00R\rchannelStatesB\x05\n" +
+	"\x03msg\"X\n" +
+	"\rChannelStates\x12(\n" +
+	"\x06states\x18\x01 \x03(\v2\x10.perunwire.StateR\x06states\x12\x1d\n" +
+	"\n" +
+	"actor_idxs\x18\x02 \x03(\rR\tactorIdxs\">\n" +
 	"\x14ChannelUpdateRequest\x12&\n" +
 	"\x05state\x18\x01 \x01(\v2\x10.perunwire.StateR\x05state\"Y\n" +
 	"\x10SuccessfulUpdate\x12&\n" +
@@ -1113,7 +1170,7 @@ func file_hub_proto_rawDescGZIP() []byte {
 	return file_hub_proto_rawDescData
 }
 
-var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_hub_proto_goTypes = []any{
 	(*Rejected)(nil),                       // 0: vc_hub.Rejected
 	(*Asset)(nil),                          // 1: vc_hub.Asset
@@ -1129,13 +1186,14 @@ var file_hub_proto_goTypes = []any{
 	(*AssetFee)(nil),                       // 11: vc_hub.AssetFee
 	(*GetChannelsRequest)(nil),             // 12: vc_hub.GetChannelsRequest
 	(*GetChannelsResponse)(nil),            // 13: vc_hub.GetChannelsResponse
-	(*ChannelUpdateRequest)(nil),           // 14: vc_hub.ChannelUpdateRequest
-	(*SuccessfulUpdate)(nil),               // 15: vc_hub.SuccessfulUpdate
-	(*ChannelUpdateResponse)(nil),          // 16: vc_hub.ChannelUpdateResponse
-	(*ChannelCloseRequest)(nil),            // 17: vc_hub.ChannelCloseRequest
-	(*SuccessfulClose)(nil),                // 18: vc_hub.SuccessfulClose
-	(*ChannelCloseResponse)(nil),           // 19: vc_hub.ChannelCloseResponse
-	(*protobuf.State)(nil),                 // 20: perunwire.State
+	(*ChannelStates)(nil),                  // 14: vc_hub.ChannelStates
+	(*ChannelUpdateRequest)(nil),           // 15: vc_hub.ChannelUpdateRequest
+	(*SuccessfulUpdate)(nil),               // 16: vc_hub.SuccessfulUpdate
+	(*ChannelUpdateResponse)(nil),          // 17: vc_hub.ChannelUpdateResponse
+	(*ChannelCloseRequest)(nil),            // 18: vc_hub.ChannelCloseRequest
+	(*SuccessfulClose)(nil),                // 19: vc_hub.SuccessfulClose
+	(*ChannelCloseResponse)(nil),           // 20: vc_hub.ChannelCloseResponse
+	(*protobuf.State)(nil),                 // 21: perunwire.State
 }
 var file_hub_proto_depIdxs = []int32{
 	1,  // 0: vc_hub.GetAssetsByHubResponse.assets:type_name -> vc_hub.Asset
@@ -1144,32 +1202,33 @@ var file_hub_proto_depIdxs = []int32{
 	11, // 3: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
 	1,  // 4: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
 	0,  // 5: vc_hub.GetChannelsResponse.rejected:type_name -> vc_hub.Rejected
-	20, // 6: vc_hub.GetChannelsResponse.state:type_name -> perunwire.State
-	20, // 7: vc_hub.ChannelUpdateRequest.state:type_name -> perunwire.State
-	20, // 8: vc_hub.SuccessfulUpdate.state:type_name -> perunwire.State
-	0,  // 9: vc_hub.ChannelUpdateResponse.rejected:type_name -> vc_hub.Rejected
-	15, // 10: vc_hub.ChannelUpdateResponse.update:type_name -> vc_hub.SuccessfulUpdate
-	0,  // 11: vc_hub.ChannelCloseResponse.rejected:type_name -> vc_hub.Rejected
-	18, // 12: vc_hub.ChannelCloseResponse.close:type_name -> vc_hub.SuccessfulClose
-	2,  // 13: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
-	8,  // 14: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
-	4,  // 15: vc_hub.VCHubService.IsParticipantInNetwork:input_type -> vc_hub.IsParticipantInNetworkRequest
-	6,  // 16: vc_hub.VCHubService.GetPaymentAddress:input_type -> vc_hub.GetPaymentAddrRequest
-	14, // 17: vc_hub.VCHubService.UpdateChannel:input_type -> vc_hub.ChannelUpdateRequest
-	17, // 18: vc_hub.VCHubService.CloseChannel:input_type -> vc_hub.ChannelCloseRequest
-	12, // 19: vc_hub.VCHubService.GetChannels:input_type -> vc_hub.GetChannelsRequest
-	3,  // 20: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
-	10, // 21: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
-	5,  // 22: vc_hub.VCHubService.IsParticipantInNetwork:output_type -> vc_hub.IsParticipantInNetworkResponse
-	7,  // 23: vc_hub.VCHubService.GetPaymentAddress:output_type -> vc_hub.GetPaymentAddrResponse
-	16, // 24: vc_hub.VCHubService.UpdateChannel:output_type -> vc_hub.ChannelUpdateResponse
-	19, // 25: vc_hub.VCHubService.CloseChannel:output_type -> vc_hub.ChannelCloseResponse
-	13, // 26: vc_hub.VCHubService.GetChannels:output_type -> vc_hub.GetChannelsResponse
-	20, // [20:27] is the sub-list for method output_type
-	13, // [13:20] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	14, // 6: vc_hub.GetChannelsResponse.channel_states:type_name -> vc_hub.ChannelStates
+	21, // 7: vc_hub.ChannelStates.states:type_name -> perunwire.State
+	21, // 8: vc_hub.ChannelUpdateRequest.state:type_name -> perunwire.State
+	21, // 9: vc_hub.SuccessfulUpdate.state:type_name -> perunwire.State
+	0,  // 10: vc_hub.ChannelUpdateResponse.rejected:type_name -> vc_hub.Rejected
+	16, // 11: vc_hub.ChannelUpdateResponse.update:type_name -> vc_hub.SuccessfulUpdate
+	0,  // 12: vc_hub.ChannelCloseResponse.rejected:type_name -> vc_hub.Rejected
+	19, // 13: vc_hub.ChannelCloseResponse.close:type_name -> vc_hub.SuccessfulClose
+	2,  // 14: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
+	8,  // 15: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
+	4,  // 16: vc_hub.VCHubService.IsParticipantInNetwork:input_type -> vc_hub.IsParticipantInNetworkRequest
+	6,  // 17: vc_hub.VCHubService.GetPaymentAddress:input_type -> vc_hub.GetPaymentAddrRequest
+	15, // 18: vc_hub.VCHubService.UpdateChannel:input_type -> vc_hub.ChannelUpdateRequest
+	18, // 19: vc_hub.VCHubService.CloseChannel:input_type -> vc_hub.ChannelCloseRequest
+	12, // 20: vc_hub.VCHubService.GetChannels:input_type -> vc_hub.GetChannelsRequest
+	3,  // 21: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
+	10, // 22: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
+	5,  // 23: vc_hub.VCHubService.IsParticipantInNetwork:output_type -> vc_hub.IsParticipantInNetworkResponse
+	7,  // 24: vc_hub.VCHubService.GetPaymentAddress:output_type -> vc_hub.GetPaymentAddrResponse
+	17, // 25: vc_hub.VCHubService.UpdateChannel:output_type -> vc_hub.ChannelUpdateResponse
+	20, // 26: vc_hub.VCHubService.CloseChannel:output_type -> vc_hub.ChannelCloseResponse
+	13, // 27: vc_hub.VCHubService.GetChannels:output_type -> vc_hub.GetChannelsResponse
+	21, // [21:28] is the sub-list for method output_type
+	14, // [14:21] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_hub_proto_init() }
@@ -1179,13 +1238,13 @@ func file_hub_proto_init() {
 	}
 	file_hub_proto_msgTypes[13].OneofWrappers = []any{
 		(*GetChannelsResponse_Rejected)(nil),
-		(*GetChannelsResponse_State)(nil),
+		(*GetChannelsResponse_ChannelStates)(nil),
 	}
-	file_hub_proto_msgTypes[16].OneofWrappers = []any{
+	file_hub_proto_msgTypes[17].OneofWrappers = []any{
 		(*ChannelUpdateResponse_Rejected)(nil),
 		(*ChannelUpdateResponse_Update)(nil),
 	}
-	file_hub_proto_msgTypes[19].OneofWrappers = []any{
+	file_hub_proto_msgTypes[20].OneofWrappers = []any{
 		(*ChannelCloseResponse_Rejected)(nil),
 		(*ChannelCloseResponse_Close)(nil),
 	}
@@ -1195,7 +1254,7 @@ func file_hub_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hub_proto_rawDesc), len(file_hub_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

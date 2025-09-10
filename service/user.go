@@ -84,6 +84,17 @@ func (u *User) CloseChannel(ctxt context.Context, id channel.ID) error {
 	return nil
 }
 
+// GetChannels returns the current state of all channels.
+func (u *User) GetChannels() ([]channel.State, []channel.Index) {
+	var states []channel.State
+	var actorIndexes []channel.Index
+	for _, ch := range u.Channels {
+		states = append(states, *ch.State().Clone())
+		actorIndexes = append(actorIndexes, ch.Idx())
+	}
+	return states, actorIndexes
+}
+
 func (u *User) GetSupportedAssets() []channel.Asset {
 	return u.supportedAssets
 }

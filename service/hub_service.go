@@ -182,3 +182,23 @@ func (s HubService) GetChannelInfoFromRequest(reqChannelId []byte) (channel.ID, 
 	}
 	return cid, s.user, err
 }
+
+func (s HubService) getUserFromGetChannelsRequest(request *proto.GetChannelsRequest) (*User, error) {
+	r := request.GetRequester()
+	if r == nil {
+		return nil, fmt.Errorf("missing requester in GetChannelsRequest")
+	}
+	var addr address.Participant
+	err := addr.UnmarshalBinary(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.user != nil {
+		if s.user.Participant.Equal(&addr) {
+			return s.user, nil
+		}
+	}
+
+	return nil, fmt.Errorf("user %s not found", addr)
+}
