@@ -1,0 +1,3 @@
+[submodule "test/devnet"]
+	path = test/devnet
+	url = git@github.com:perun-network/perun-ckb-devnet-scripts.git
