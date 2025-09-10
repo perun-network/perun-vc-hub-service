@@ -86,3 +86,13 @@ func toCKBAllocation(protoAlloc *protobuf.Allocation) (*channel.Allocation, erro
 
 	return alloc, nil
 }
+
+// AsChannelID converts a byte slice to a channel ID.
+func AsChannelID(in []byte) (channel.ID, error) {
+	id := channel.ID{}
+	n := copy(id[:], in)
+	if n != len(id) {
+		return channel.ID{}, fmt.Errorf("channel id too short: expected %d bytes, got %d", len(id), n)
+	}
+	return id, nil
+}

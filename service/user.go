@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -20,6 +21,9 @@ import (
 	"perun.network/vc-hub-service/protocol"
 	"perun.network/vc-hub-service/rpc/proto"
 )
+
+// ErrChannelNotFound is returned when a channel with the specified ID is not found.
+var ErrChannelNotFound = errors.New("channel not found")
 
 // User represent the owner of this hub-service
 // The owner can set the assets supported by this service
@@ -50,6 +54,34 @@ func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, 
 	}
 	go c.Handle(u, u)
 	return u, nil
+}
+
+// CloseChannel closes the channel with the specified ID.
+func (u *User) CloseChannel(ctxt context.Context, id channel.ID) error {
+	ch, ok := u.Channels[id]
+	if !ok {
+		return ErrChannelNotFound
+	}
+	// Finalize the channel to enable fast settlement.
+	if !ch.State().IsFinal {
+		err := ch.Update(ctxt, func(state *channel.State) {
+			state.IsFinal = true
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Settle concludes the channel and withdraws the funds.
+	err := ch.Settle(ctxt, false)
+	if err != nil {
+		panic(err)
+	}
+
+	// Close frees up channel resources.
+	_ = ch.Close()
+	delete(u.Channels, id)
+	return nil
 }
 
 func (u *User) GetSupportedAssets() []channel.Asset {

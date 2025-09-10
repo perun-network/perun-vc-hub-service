@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/big"
 
@@ -9,6 +10,7 @@ import (
 	ckbrpc "github.com/nervosnetwork/ckb-sdk-go/v2/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
 	"github.com/perun-network/perun-libp2p-wire/p2p"
+	"perun.network/go-perun/channel"
 	gpchannel "perun.network/go-perun/channel"
 	"perun.network/go-perun/channel/persistence"
 	gpwallet "perun.network/go-perun/wallet"
@@ -167,4 +169,16 @@ func (s HubService) SetWireAddress(participant address.Participant) (wire.Addres
 // ToCKBAddress converts a participant address to a CKB address.
 func (s HubService) ToCKBAddress(addr address.Participant) address2.Address {
 	return addr.ToCKBAddress(s.network)
+}
+
+// GetChannelInfoFromRequest returns the channel ID and user from the request.
+func (s HubService) GetChannelInfoFromRequest(reqChannelId []byte) (channel.ID, *User, error) {
+	cid, err := AsChannelID(reqChannelId)
+	if err != nil {
+		return channel.ID{}, nil, err
+	}
+	if s.user == nil {
+		return channel.ID{}, nil, fmt.Errorf("user not found")
+	}
+	return cid, s.user, err
 }
