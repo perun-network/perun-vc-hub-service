@@ -6,10 +6,13 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/nervosnetwork/ckb-sdk-go/v2 v2.2.0
 	github.com/perun-network/perun-libp2p-wire v0.2.2
+	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
+	perun.network/channel-service v0.0.0
 	perun.network/go-perun v0.12.1-0.20250415090022-4d68d2869b94
 	perun.network/perun-ckb-backend v0.2.0
+	polycry.pt/poly-go v0.0.0-20220301085937-fb9d71b45a37
 )
 
 require (
@@ -26,7 +29,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/elastic/gosigar v0.14.3 // indirect
-	github.com/ethereum/go-ethereum v1.13.10 // indirect
+	github.com/ethereum/go-ethereum v1.13.15 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
@@ -106,10 +109,9 @@ require (
 	github.com/quic-go/webtransport-go v0.8.1-0.20241018022711-4ac2c9250e66 // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
@@ -130,9 +132,10 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.4.0 // indirect
-	polycry.pt/poly-go v0.0.0-20220301085937-fb9d71b45a37 // indirect
 )
 
 replace github.com/nervosnetwork/ckb-sdk-go/v2 v2.2.0 => github.com/perun-network/ckb-sdk-go/v2 v2.2.1-0.20250414095541-e6244b21519c
 
 replace github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.4
+
+replace perun.network/channel-service => github.com/perun-network/channel-service v0.0.0-20250915040427-f52fd89601e8

@@ -33,22 +33,23 @@ type Migration struct {
 }
 
 func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg string) (backend.Deployment, SUDTInfo, error) {
-	pcts := m.CellRecipes[0]
-	if pcts.Name != "pcts" {
-		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("first cell recipe must be pcts")
-	}
-	pcls := m.CellRecipes[1]
-	if pcls.Name != "pcls" {
-		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("second cell recipe must be pcls")
-	}
-	pfls := m.CellRecipes[2]
-	if pfls.Name != "pfls" {
-		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("third cell recipe must be pfls")
-	}
 	sudtInfo, err := m.GetSUDT()
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
 	}
+	pcts := m.CellRecipes[1]
+	if pcts.Name != "pcts" {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("first cell recipe must be pcts")
+	}
+	pcls := m.CellRecipes[2]
+	if pcls.Name != "pcls" {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("second cell recipe must be pcls")
+	}
+	pfls := m.CellRecipes[3]
+	if pfls.Name != "pfls" {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("third cell recipe must be pfls")
+	}
+
 	// NOTE: The SUDT lock-arg always contains a newline character at the end.
 	hexString := strings.ReplaceAll(sudtOwnerLockArg[2:], "\n", "")
 	hexString = strings.ReplaceAll(hexString, "\r", "")
@@ -104,7 +105,7 @@ func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg 
 }
 
 func (m Migration) GetSUDT() (*SUDTInfo, error) {
-	sudt := m.CellRecipes[3]
+	sudt := m.CellRecipes[0]
 	if sudt.Name != "sudt" {
 		return nil, fmt.Errorf("fourth cell recipe must be sudt")
 	}

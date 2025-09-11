@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"math/rand"
+	"time"
 
 	address2 "github.com/nervosnetwork/ckb-sdk-go/v2/address"
 	ckbrpc "github.com/nervosnetwork/ckb-sdk-go/v2/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
 	"github.com/perun-network/perun-libp2p-wire/p2p"
-	"perun.network/go-perun/channel"
 	gpchannel "perun.network/go-perun/channel"
-	"perun.network/go-perun/channel/persistence"
 	gpwallet "perun.network/go-perun/wallet"
 	"perun.network/go-perun/watcher/local"
 	"perun.network/go-perun/wire"
@@ -22,6 +22,7 @@ import (
 	"perun.network/perun-ckb-backend/channel/funder"
 	"perun.network/perun-ckb-backend/client"
 	"perun.network/perun-ckb-backend/wallet/address"
+	"perun.network/perun-ckb-backend/wallet/external"
 	"perun.network/vc-hub-service/rpc/proto"
 	"perun.network/vc-hub-service/wallet"
 )
@@ -39,7 +40,43 @@ type HubService struct {
 	wallet                                gpwallet.Wallet
 	wireAddr                              wire.Address
 	resolver                              AddressResolver
-	pr                                    persistence.PersistRestorer
+}
+
+// NewChannelService creates a new ChannelService.
+func NewHubService(c proto.WalletServiceClient, network types.Network, nodeURL string, deployment backend.Deployment, res AddressResolver, addr address.Participant) (*HubService, error) {
+	node, err := ckbrpc.Dial(nodeURL)
+	if err != nil {
+		return nil, err
+	}
+
+	wireAcc := p2p.NewRandomAccount(rand.New(rand.NewSource(time.Now().UnixNano())))
+
+	wireNet, err := p2p.NewP2PBus(wireAcc)
+	if err != nil {
+		return nil, fmt.Errorf("error creating wire net: %w", err)
+	}
+
+	go wireNet.Bus.Listen(wireNet.Listener)
+
+	if res == nil {
+		res = NewRelayServerResolver(wireAcc)
+	}
+
+	hs := &HubService{
+		user:         nil,
+		participants: []address.Participant{},
+		addr:         addr,
+		wsc:          c,
+		net:          wireNet,
+		network:      network,
+		node:         node,
+		deployment:   deployment,
+		wallet:       external.NewWallet(wallet.NewExternalClient(c)),
+		wireAddr:     wireAcc.Address(),
+		resolver:     res,
+	}
+
+	return hs, nil
 }
 
 // InitializeUser initializes a user with the given participant.
@@ -61,7 +98,7 @@ func (s *HubService) InitializeUser(participant address.Participant, wsc proto.W
 	if err != nil {
 		return nil, err
 	}
-	usr, err := NewUser(participant, wAddr, s.net.Bus, f, adj, w, watcher, wsc, s.pr)
+	usr, err := NewUser(participant, wAddr, s.net.Bus, f, adj, w, watcher, wsc)
 	if err != nil {
 		return nil, err
 	}
@@ -172,13 +209,13 @@ func (s HubService) ToCKBAddress(addr address.Participant) address2.Address {
 }
 
 // GetChannelInfoFromRequest returns the channel ID and user from the request.
-func (s HubService) GetChannelInfoFromRequest(reqChannelId []byte) (channel.ID, *User, error) {
+func (s HubService) GetChannelInfoFromRequest(reqChannelId []byte) (gpchannel.ID, *User, error) {
 	cid, err := AsChannelID(reqChannelId)
 	if err != nil {
-		return channel.ID{}, nil, err
+		return gpchannel.ID{}, nil, err
 	}
 	if s.user == nil {
-		return channel.ID{}, nil, fmt.Errorf("user not found")
+		return gpchannel.ID{}, nil, fmt.Errorf("user not found")
 	}
 	return cid, s.user, err
 }
@@ -201,4 +238,8 @@ func (s HubService) getUserFromGetChannelsRequest(request *proto.GetChannelsRequ
 	}
 
 	return nil, fmt.Errorf("user %s not found", addr)
+}
+
+func (c HubService) Close() error {
+	return c.net.Bus.Close()
 }
