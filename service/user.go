@@ -9,7 +9,6 @@ import (
 
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
 	"perun.network/go-perun/channel"
-	"perun.network/go-perun/channel/persistence"
 	"perun.network/go-perun/client"
 	gpwallet "perun.network/go-perun/wallet"
 	"perun.network/go-perun/watcher"
@@ -39,9 +38,8 @@ type User struct {
 	Channels        map[channel.ID]*client.Channel // Active channels of the user
 }
 
-func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc proto.WalletServiceClient, pr persistence.PersistRestorer) (*User, error) {
+func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc proto.WalletServiceClient) (*User, error) {
 	c, err := client.New(wAddr, bus, funder, adjudicator, wallet, watcher)
-	c.EnablePersistence(pr)
 	if err != nil {
 		return nil, err
 	}

@@ -20,7 +20,7 @@ func (s *HubService) UpdateChannel(ctx context.Context, req *proto.ChannelUpdate
 	}, nil
 }
 
-func (s *HubService) CloseChannel(ctx context.Context, req *proto.CloseChannelRequest) (*proto.ChannelCloseResponse, error) {
+func (s *HubService) CloseChannel(ctx context.Context, req *proto.ChannelCloseRequest) (*proto.ChannelCloseResponse, error) {
 	// panic("CloseChannel not implemented")
 	cid, user, err := s.GetChannelInfoFromRequest(req.GetChannelId())
 	if err != nil {
