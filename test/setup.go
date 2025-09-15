@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
+	"perun.network/vc-hub-service/protocol"
 	"perun.network/vc-hub-service/rpc/proto"
 	"perun.network/vc-hub-service/service"
 	"perun.network/vc-hub-service/test/deployment"
@@ -63,6 +64,11 @@ type HubServiceInfo struct {
 	HubClient   proto.VCHubServiceClient
 }
 
+type HubProtocolInfo struct {
+	FeeWatcher   protocol.Watcher
+	FeeStructure protocol.FeeStructure
+}
+
 // Setup contains all the necessary information for testing.
 type Setup struct {
 	t                          *testing.T
@@ -82,6 +88,7 @@ type Setup struct {
 	Databases                  []*sortedkv.Database
 	HubWallet                  HubWalletInfo
 	HubService                 HubServiceInfo
+	HubProtocol                HubProtocolInfo
 }
 
 // NewTestSetup creates a new setup for testing.
@@ -166,6 +173,11 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 		IsCKBytes: false,
 		SUDT:      asset.NewSUDT(*sudtInfo.Script, uint64(sudtMaxCapacity)),
 	}
+	protocolInfo := HubProtocolInfo{
+		FeeWatcher:   &MockFeeWatcher{},
+		FeeStructure: &MockFeeStructure{},
+	}
+	setup.HubProtocol = protocolInfo
 	return setup
 }
 
