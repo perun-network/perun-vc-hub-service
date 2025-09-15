@@ -26,6 +26,7 @@ import (
 	"perun.network/perun-ckb-backend/wallet/address"
 	"perun.network/perun-ckb-backend/wallet/external"
 
+	"perun.network/vc-hub-service/protocol"
 	"perun.network/vc-hub-service/rpc/proto"
 
 	chproto "perun.network/channel-service/rpc/proto"
@@ -197,9 +198,12 @@ func (s *HubService) IsParticipantInNetwork(ctx context.Context, req *proto.IsPa
 }
 
 func (s *HubService) GetPaymentAddress(ctx context.Context, req *proto.GetPaymentAddrRequest) (*proto.GetPaymentAddrResponse, error) {
-	paymentAddr := s.addr.String()
+	ckbAddr, err := s.ToCKBAddress(s.addr).Encode()
+	if err != nil {
+		return nil, err
+	}
 	return &proto.GetPaymentAddrResponse{
-		PaymentAddress: paymentAddr,
+		PaymentAddress: ckbAddr,
 	}, nil
 }
 
@@ -247,4 +251,31 @@ func (s HubService) getUserFromGetChannelsRequest(request *proto.GetChannelsRequ
 
 func (c HubService) Close() error {
 	return c.net.Bus.Close()
+}
+
+func (s *HubService) SetFeeStructure(fs protocol.FeeStructure) error {
+	// TODO: Add authentication so that only the owner can call them
+	if s.user == nil {
+		return fmt.Errorf("user not initialized")
+	}
+	s.user.feeStructure = fs
+	return nil
+}
+
+func (s *HubService) SetFeeWatcher(fw protocol.Watcher) error {
+	//TODO: Add authentication so that only the owner can call them
+	if s.user == nil {
+		return fmt.Errorf("user not initialized")
+	}
+	s.user.feeWatcher = fw
+	return nil
+}
+
+func (s *HubService) SetSupportedAssets(assets []gpchannel.Asset) error {
+	//TODO: Add authentication so that only the owner can call them
+	if s.user == nil {
+		return fmt.Errorf("user not initialized")
+	}
+	s.user.supportedAssets = assets
+	return nil
 }

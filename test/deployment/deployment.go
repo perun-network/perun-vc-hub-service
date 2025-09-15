@@ -64,21 +64,21 @@ func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg 
 		PCTSDep: types.CellDep{
 			OutPoint: &types.OutPoint{
 				TxHash: types.HexToHash(pcts.TxHash),
-				Index:  m.CellRecipes[0].Index,
+				Index:  pcts.Index,
 			},
 			DepType: types.DepTypeCode,
 		},
 		PCLSDep: types.CellDep{
 			OutPoint: &types.OutPoint{
 				TxHash: types.HexToHash(pcls.TxHash),
-				Index:  m.CellRecipes[0].Index,
+				Index:  pcls.Index,
 			},
 			DepType: types.DepTypeCode,
 		},
 		PFLSDep: types.CellDep{
 			OutPoint: &types.OutPoint{
 				TxHash: types.HexToHash(pfls.TxHash),
-				Index:  m.CellRecipes[0].Index,
+				Index:  pfls.Index,
 			},
 			DepType: types.DepTypeCode,
 		},

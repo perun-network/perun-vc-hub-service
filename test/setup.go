@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	defaultnet "net"
+	"net"
 	"os"
 	"testing"
 
@@ -53,7 +53,7 @@ const (
 )
 
 type HubWalletInfo struct {
-	WalletService *MyWalletService
+	WalletService *chtest.MyWalletService
 	CleanupFunc   func()
 	WSClient      chproto.WalletServiceClient
 }
@@ -126,10 +126,11 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 
 	aliceWSC, aliceWSCCleanup := setup.setupWalletService(t, "alice", aliceAccount, alicePrivateKey, Network)
 	bobWSC, bobWSCCleanup := setup.setupWalletService(t, "bob", bobAccount, bobPrivateKey, Network)
-	hubWSC, hubWSCCleanup := setup.setupHubWalletService(t, "hub", hubAccount, hubOwnerPrivateKey, Network)
+	hubWSC, hubWSCCleanup := setup.setupWalletService(t, "hub", hubAccount, hubOwnerPrivateKey, Network)
 	setup.HubWallet = HubWalletInfo{
-		CleanupFunc: hubWSCCleanup,
-		WSClient:    hubWSC,
+		CleanupFunc:   hubWSCCleanup,
+		WSClient:      hubWSC,
+		WalletService: setup.WalletServices[2],
 	}
 
 	setup.WscCleanupFuncs = []func(){aliceWSCCleanup, bobWSCCleanup}
@@ -182,7 +183,7 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 }
 
 func setupChannelService(t *testing.T, name string, wsc chproto.WalletServiceClient, network types.Network, rpcNodeUrl string, d backend.Deployment, addrResolver service.AddressResolver, db *sortedkv.Database) (chproto.ChannelServiceClient, *chservice.ChannelService, func()) {
-	cs, err := chservice.NewChannelService(wsc, network, rpcNodeUrl, d, nil, *db)
+	cs, err := chservice.NewChannelService(wsc, network, rpcNodeUrl, d, addrResolver, *db)
 	require.NoError(t, err, "error setting up channel service for %s", name)
 	lis := bufconn.Listen(bufSize)
 	baseServer := grpc.NewServer()
@@ -192,9 +193,13 @@ func setupChannelService(t *testing.T, name string, wsc chproto.WalletServiceCli
 		err := baseServer.Serve(lis)
 		require.NoError(t, err, "Server exited with error for %s", name)
 	}()
-	conn, err := grpc.NewClient("bufnet", grpc.WithContextDialer(func(context.Context, string) (defaultnet.Conn, error) {
-		return lis.Dial()
-	}), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("passthrough://bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
 	require.NoError(t, err, "Failed to dial bufnet for %s", name)
 
 	return chproto.NewChannelServiceClient(conn), cs, func() {
@@ -211,7 +216,7 @@ func setupChannelService(t *testing.T, name string, wsc chproto.WalletServiceCli
 }
 
 func setupHubService(t *testing.T, name string, wsc chproto.WalletServiceClient, network types.Network, rpcNodeUrl string, d backend.Deployment, addrResolver service.AddressResolver, part ckbaddr.Participant) (proto.VCHubServiceClient, *service.HubService, func()) {
-	hs, err := service.NewHubService(wsc, network, rpcNodeUrl, d, nil, part)
+	hs, err := service.NewHubService(wsc, network, rpcNodeUrl, d, addrResolver, part)
 	require.NoError(t, err, "error setting up hub service for %s", name)
 	lis := bufconn.Listen(bufSize)
 	baseServer := grpc.NewServer()
@@ -221,9 +226,12 @@ func setupHubService(t *testing.T, name string, wsc chproto.WalletServiceClient,
 		err := baseServer.Serve(lis)
 		require.NoError(t, err, "Server exited with error for %s", name)
 	}()
-	conn, err := grpc.NewClient("bufnet", grpc.WithContextDialer(func(context.Context, string) (defaultnet.Conn, error) {
-		return lis.Dial()
-	}), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("passthrough://bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	require.NoError(t, err, "Failed to dial bufnet for %s", name)
 
 	return proto.NewVCHubServiceClient(conn), hs, func() {
@@ -250,35 +258,12 @@ func (set *Setup) setupWalletService(t *testing.T, name string, account *ckbwall
 		require.NoError(t, err, "Server exited with error for %s", name)
 	}()
 
-	conn, err := grpc.NewClient("bufnet", grpc.WithContextDialer(func(context.Context, string) (defaultnet.Conn, error) {
-		return lis.Dial()
-	}), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err, "Failed to dial bufnet for %s", name)
-
-	return chproto.NewWalletServiceClient(conn), func() {
-		err := lis.Close()
-		if err != nil {
-			log.Printf("error closing listener: %v", err)
-		}
-		baseServer.Stop()
-	}
-}
-
-func (set *Setup) setupHubWalletService(t *testing.T, name string, account *ckbwallet.Account, privateKey *secp256k1.PrivateKey, network types.Network) (chproto.WalletServiceClient, func()) {
-	lis := bufconn.Listen(bufSize)
-	wsc := NewWalletServiceServer(name, account, privateKey, network)
-	// set.WalletServices = append(set.WalletServices, wsc)
-	set.HubWallet.WalletService = wsc
-	baseServer := grpc.NewServer()
-	proto.RegisterWalletServiceServer(baseServer, wsc)
-	go func() {
-		err := baseServer.Serve(lis)
-		require.NoError(t, err, "Server exited with error for %s", name)
-	}()
-
-	conn, err := grpc.NewClient("bufnet", grpc.WithContextDialer(func(context.Context, string) (defaultnet.Conn, error) {
-		return lis.Dial()
-	}), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("passthrough://bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
+			return lis.Dial()
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	require.NoError(t, err, "Failed to dial bufnet for %s", name)
 
 	return chproto.NewWalletServiceClient(conn), func() {
