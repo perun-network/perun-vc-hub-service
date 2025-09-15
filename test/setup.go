@@ -18,7 +18,6 @@ import (
 	"perun.network/vc-hub-service/rpc/proto"
 	"perun.network/vc-hub-service/service"
 	"perun.network/vc-hub-service/test/deployment"
-	"perun.network/vc-hub-service/wallet"
 	"polycry.pt/poly-go/sortedkv"
 	"polycry.pt/poly-go/sortedkv/memorydb"
 
@@ -55,7 +54,7 @@ const (
 type HubWalletInfo struct {
 	WalletService *MyWalletService
 	CleanupFunc   func()
-	WSClient      proto.WalletServiceClient
+	WSClient      chproto.WalletServiceClient
 }
 
 type HubServiceInfo struct {
@@ -156,7 +155,7 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 		CleanupFunc: HubCleanup,
 		HubClient:   HubClient,
 	}
-	_, err = HubService.InitializeUser(parts[2], hubWSC, external.NewWallet(wallet.NewExternalClient(hubWSC)))
+	_, err = HubService.InitializeUser(parts[2], hubWSC, external.NewWallet(chwallet.NewExternalClient(hubWSC)))
 	require.NoError(t, err, "error initializing hub user")
 
 	setup.Asset = asset.Asset{
@@ -199,7 +198,7 @@ func setupChannelService(t *testing.T, name string, wsc chproto.WalletServiceCli
 	}
 }
 
-func setupHubService(t *testing.T, name string, wsc proto.WalletServiceClient, network types.Network, rpcNodeUrl string, d backend.Deployment, addrResolver service.AddressResolver, part ckbaddr.Participant) (proto.VCHubServiceClient, *service.HubService, func()) {
+func setupHubService(t *testing.T, name string, wsc chproto.WalletServiceClient, network types.Network, rpcNodeUrl string, d backend.Deployment, addrResolver service.AddressResolver, part ckbaddr.Participant) (proto.VCHubServiceClient, *service.HubService, func()) {
 	hs, err := service.NewHubService(wsc, network, rpcNodeUrl, d, nil, part)
 	require.NoError(t, err, "error setting up hub service for %s", name)
 	lis := bufconn.Listen(bufSize)
@@ -253,7 +252,7 @@ func (set *Setup) setupWalletService(t *testing.T, name string, account *ckbwall
 	}
 }
 
-func (set *Setup) setupHubWalletService(t *testing.T, name string, account *ckbwallet.Account, privateKey *secp256k1.PrivateKey, network types.Network) (proto.WalletServiceClient, func()) {
+func (set *Setup) setupHubWalletService(t *testing.T, name string, account *ckbwallet.Account, privateKey *secp256k1.PrivateKey, network types.Network) (chproto.WalletServiceClient, func()) {
 	lis := bufconn.Listen(bufSize)
 	wsc := NewWalletServiceServer(name, account, privateKey, network)
 	// set.WalletServices = append(set.WalletServices, wsc)
@@ -270,7 +269,7 @@ func (set *Setup) setupHubWalletService(t *testing.T, name string, account *ckbw
 	}), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Failed to dial bufnet for %s", name)
 
-	return proto.NewWalletServiceClient(conn), func() {
+	return chproto.NewWalletServiceClient(conn), func() {
 		err := lis.Close()
 		if err != nil {
 			log.Printf("error closing listener: %v", err)

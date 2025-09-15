@@ -18,7 +18,8 @@ import (
 	"perun.network/perun-ckb-backend/wallet/address"
 
 	"perun.network/vc-hub-service/protocol"
-	"perun.network/vc-hub-service/rpc/proto"
+
+	chproto "perun.network/channel-service/rpc/proto"
 )
 
 // ErrChannelNotFound is returned when a channel with the specified ID is not found.
@@ -34,11 +35,11 @@ type User struct {
 	Participant     address.Participant
 	PerunClient     *client.Client
 	WireAddress     wire.Address
-	wsc             proto.WalletServiceClient
+	wsc             chproto.WalletServiceClient
 	Channels        map[channel.ID]*client.Channel // Active channels of the user
 }
 
-func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc proto.WalletServiceClient) (*User, error) {
+func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc chproto.WalletServiceClient) (*User, error) {
 	c, err := client.New(wAddr, bus, funder, adjudicator, wallet, watcher)
 	if err != nil {
 		return nil, err
@@ -127,7 +128,7 @@ func (u *User) NotifyAllState(_, to *channel.State) {
 		panic(fmt.Sprintf("unable to encode state: %v", err))
 	}
 
-	resp, err := u.wsc.UpdateNotification(context.TODO(), &proto.UpdateNotificationRequest{
+	resp, err := u.wsc.UpdateNotification(context.TODO(), &chproto.UpdateNotificationRequest{
 		State: pbNewState,
 	})
 	if err != nil {
@@ -175,7 +176,7 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 	}
 
 	log.Println("Requesting nonce share from wallet")
-	resp, err := u.wsc.OpenChannel(context.TODO(), &proto.OpenChannelRequest{Proposal: pLcp.LedgerChannelProposalMsg})
+	resp, err := u.wsc.OpenChannel(context.TODO(), &chproto.OpenChannelRequest{Proposal: pLcp.LedgerChannelProposalMsg})
 	if err != nil {
 		_ = responder.Reject(context.TODO(), fmt.Sprintf("unable to open channel: %v", err))
 		return

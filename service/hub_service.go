@@ -12,10 +12,12 @@ import (
 	ckbrpc "github.com/nervosnetwork/ckb-sdk-go/v2/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
 	"github.com/perun-network/perun-libp2p-wire/p2p"
+
 	gpchannel "perun.network/go-perun/channel"
 	gpwallet "perun.network/go-perun/wallet"
 	"perun.network/go-perun/watcher/local"
 	"perun.network/go-perun/wire"
+
 	"perun.network/perun-ckb-backend/backend"
 	"perun.network/perun-ckb-backend/channel/adjudicator"
 	basset "perun.network/perun-ckb-backend/channel/asset"
@@ -23,8 +25,11 @@ import (
 	"perun.network/perun-ckb-backend/client"
 	"perun.network/perun-ckb-backend/wallet/address"
 	"perun.network/perun-ckb-backend/wallet/external"
+
 	"perun.network/vc-hub-service/rpc/proto"
-	"perun.network/vc-hub-service/wallet"
+
+	chproto "perun.network/channel-service/rpc/proto"
+	chwallet "perun.network/channel-service/wallet"
 )
 
 type HubService struct {
@@ -32,7 +37,7 @@ type HubService struct {
 	user                                  *User
 	participants                          []address.Participant
 	addr                                  address.Participant
-	wsc                                   proto.WalletServiceClient
+	wsc                                   chproto.WalletServiceClient
 	net                                   *p2p.Net
 	network                               types.Network
 	node                                  ckbrpc.Client
@@ -43,7 +48,7 @@ type HubService struct {
 }
 
 // NewChannelService creates a new ChannelService.
-func NewHubService(c proto.WalletServiceClient, network types.Network, nodeURL string, deployment backend.Deployment, res AddressResolver, addr address.Participant) (*HubService, error) {
+func NewHubService(c chproto.WalletServiceClient, network types.Network, nodeURL string, deployment backend.Deployment, res AddressResolver, addr address.Participant) (*HubService, error) {
 	node, err := ckbrpc.Dial(nodeURL)
 	if err != nil {
 		return nil, err
@@ -71,7 +76,7 @@ func NewHubService(c proto.WalletServiceClient, network types.Network, nodeURL s
 		network:      network,
 		node:         node,
 		deployment:   deployment,
-		wallet:       external.NewWallet(wallet.NewExternalClient(c)),
+		wallet:       external.NewWallet(chwallet.NewExternalClient(c)),
 		wireAddr:     wireAcc.Address(),
 		resolver:     res,
 	}
@@ -80,14 +85,14 @@ func NewHubService(c proto.WalletServiceClient, network types.Network, nodeURL s
 }
 
 // InitializeUser initializes a user with the given participant.
-func (s *HubService) InitializeUser(participant address.Participant, wsc proto.WalletServiceClient, w gpwallet.Wallet) (*User, error) {
+func (s *HubService) InitializeUser(participant address.Participant, wsc chproto.WalletServiceClient, w gpwallet.Wallet) (*User, error) {
 	log.Printf("Initializing user %s", participant)
 
 	wAddr, err := s.SetWireAddress(participant)
 	if err != nil {
 		return nil, err
 	}
-	rs := wallet.NewRemoteSigner(wsc, s.ToCKBAddress(participant), &participant)
+	rs := chwallet.NewRemoteSigner(wsc, s.ToCKBAddress(participant), &participant)
 	ckbClient, err := client.NewClient(s.node, rs, s.deployment)
 	if err != nil {
 		return nil, err
