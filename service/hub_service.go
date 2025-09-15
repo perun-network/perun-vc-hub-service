@@ -33,10 +33,12 @@ import (
 	chwallet "perun.network/channel-service/wallet"
 )
 
+// participantRegistry is a global participant registry for the hub service.
+var participantRegistry = NewLocalParticipantRegistry()
+
 type HubService struct {
 	proto.UnimplementedVCHubServiceServer //always embed for gRPC service impl.
 	user                                  *User
-	participants                          []address.Participant
 	addr                                  address.Participant
 	wsc                                   chproto.WalletServiceClient
 	net                                   *p2p.Net
@@ -69,17 +71,16 @@ func NewHubService(c chproto.WalletServiceClient, network types.Network, nodeURL
 	}
 
 	hs := &HubService{
-		user:         nil,
-		participants: []address.Participant{},
-		addr:         addr,
-		wsc:          c,
-		net:          wireNet,
-		network:      network,
-		node:         node,
-		deployment:   deployment,
-		wallet:       external.NewWallet(chwallet.NewExternalClient(c)),
-		wireAddr:     wireAcc.Address(),
-		resolver:     res,
+		user:       nil,
+		addr:       addr,
+		wsc:        c,
+		net:        wireNet,
+		network:    network,
+		node:       node,
+		deployment: deployment,
+		wallet:     external.NewWallet(chwallet.NewExternalClient(c)),
+		wireAddr:   wireAcc.Address(),
+		resolver:   res,
 	}
 
 	return hs, nil
@@ -104,7 +105,7 @@ func (s *HubService) InitializeUser(participant address.Participant, wsc chproto
 	if err != nil {
 		return nil, err
 	}
-	usr, err := NewUser(participant, wAddr, s.net.Bus, f, adj, w, watcher, wsc)
+	usr, err := NewUser(participant, wAddr, s.net.Bus, f, adj, w, watcher, wsc, s.network)
 	if err != nil {
 		return nil, err
 	}
@@ -183,17 +184,13 @@ func (s *HubService) GetFees(ctx context.Context, req *proto.GetFeesRequest) (*p
 
 // TODO: When a participant has a ledger channel with hub, then add it to the participants list.
 func (s *HubService) IsParticipantInNetwork(ctx context.Context, req *proto.IsParticipantInNetworkRequest) (*proto.IsParticipantInNetworkResponse, error) {
-	addrString := req.Address
-	for _, p := range s.participants {
-		if p.String() == addrString {
-			return &proto.IsParticipantInNetworkResponse{
-				IsInNetwork: true,
-			}, nil
-		}
+	addr := req.Address
+	res, error := participantRegistry.IsAddressInNetwork(addr)
+	if error != nil {
+		return nil, error
 	}
-
 	return &proto.IsParticipantInNetworkResponse{
-		IsInNetwork: false,
+		IsInNetwork: res,
 	}, nil
 }
 

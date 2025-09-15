@@ -37,9 +37,10 @@ type User struct {
 	WireAddress     wire.Address
 	wsc             chproto.WalletServiceClient
 	Channels        map[channel.ID]*client.Channel // Active channels of the user
+	network         types.Network
 }
 
-func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc chproto.WalletServiceClient) (*User, error) {
+func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, funder channel.Funder, adjudicator channel.Adjudicator, wallet gpwallet.Wallet, watcher watcher.Watcher, wsc chproto.WalletServiceClient, net types.Network) (*User, error) {
 	c, err := client.New(wAddr, bus, funder, adjudicator, wallet, watcher)
 	if err != nil {
 		return nil, err
@@ -50,6 +51,7 @@ func NewUser(participant address.Participant, wAddr wire.Address, bus wire.Bus, 
 		WireAddress: wAddr,
 		wsc:         wsc,
 		Channels:    make(map[channel.ID]*client.Channel),
+		network:     net,
 	}
 	go c.Handle(u, u)
 	return u, nil
@@ -175,6 +177,11 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 		return
 	}
 
+	proposalPart, ok := lcp.Participant.(*address.Participant)
+	if !ok {
+		_ = responder.Reject(context.TODO(), "unable to decode participant from proposal")
+		return
+	}
 	log.Println("Requesting nonce share from wallet")
 	resp, err := u.wsc.OpenChannel(context.TODO(), &chproto.OpenChannelRequest{Proposal: pLcp.LedgerChannelProposalMsg})
 	if err != nil {
@@ -201,6 +208,11 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 		},
 		Participant: &u.Participant,
 	}
+	proposerCkbAddr, err := proposalPart.ToCKBAddress(u.network).Encode()
+	if err != nil {
+		panic(fmt.Sprintf("encoding proposer addr: %v", err))
+	}
+	participantRegistry.RegisterParticipant(proposerCkbAddr, *proposalPart)
 	ch, err := responder.Accept(context.TODO(), &cpa)
 	if err != nil {
 		panic(err)
