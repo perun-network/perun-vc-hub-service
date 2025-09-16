@@ -2,19 +2,26 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/big"
 	"testing"
 
+	"polycry.pt/poly-go/sync"
+
+	"github.com/perun-network/perun-libp2p-wire/p2p"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	gpchannel "perun.network/go-perun/channel"
+	gpclient "perun.network/go-perun/client"
+	gpwire "perun.network/go-perun/wire"
 
 	basset "perun.network/perun-ckb-backend/channel/asset"
 
 	chtest "perun.network/channel-service/test"
 	"perun.network/vc-hub-service/rpc/proto"
 	"perun.network/vc-hub-service/test"
+	"perun.network/vc-hub-service/test/client"
 )
 
 func TestGetAssetsByHub(t *testing.T) {
@@ -211,4 +218,138 @@ func TestGetFees(t *testing.T) {
 	require.Equal(t, len(supportedAssets), len(resp.AssetFees))
 	require.Equal(t, resp.AssetFees[0].Fee, "1.00000000") // 1 ckbyte fee for ckb asset
 	require.Equal(t, resp.AssetFees[1].Fee, "1.00000000") // 1 ckbyte fee for sudt asset
+}
+
+func TestHappy(t *testing.T) {
+	testConfig := test.DevnetConfig()
+	setup := test.NewPaymentClientSetup(t, testConfig)
+
+	//setuptask
+	hubService := setup.HubService.HubService
+	// hubClient := setup.HubService.HubClient
+	defer setup.HubService.CleanupFunc()
+	defer setup.HubWallet.CleanupFunc()
+	for _, fn := range setup.PaymentClientsCleanUp {
+		defer fn()
+	}
+	hubWalletService := setup.HubWallet.WalletService
+	hubWalletService.SetOpenChannelResponse(true)
+	hubWalletService.SetUpdateNotificationResponse(true)
+	hubWalletService.SetSignMessageResponse(true)
+	hubWalletService.SetSignTransactionResponse(true)
+
+	log.Println("Alice balances: ", setup.PaymentClients[0].GetBalances())
+	log.Println("Bob balances: ", setup.PaymentClients[1].GetBalances())
+
+	hubService.SetFeeStructure(setup.HubProtocol.FeeStructure)
+	feeWatcher := &test.MockFeeWatcher{}
+	feeWatcher.SetFeesPaid(true)
+	hubService.SetFeeWatcher(feeWatcher)
+	//Alice opens a ledger channel with hub
+	hubWire := setup.HubService.User.WireAddress
+	alicePC := setup.PaymentClients[0]
+	hubWireAddr, ok := setup.HubService.User.WireAddress.(*p2p.Address)
+	assert.True(t, ok)
+
+	chAlice := alicePC.OpenChannel(setup.Ctx, hubWire, hubWireAddr.ID.String(), map[gpchannel.Asset]float64{
+		&setup.Asset: 100.0,
+	})
+	require.NotNil(t, chAlice)
+	log.Println("Alice opened channel with hub with id:", chAlice.State().ID)
+
+	//Bob opens a ledger channel with hub
+	bobPC := setup.PaymentClients[1]
+	defer bobPC.Shutdown()
+	chBob := bobPC.OpenChannel(setup.Ctx, hubWire, hubWireAddr.ID.String(), map[gpchannel.Asset]float64{
+		&setup.Asset: 100.0,
+	})
+	require.NotNil(t, chBob)
+	log.Println("Bob opened channel with hub with id:", chBob.State().ID)
+
+	log.Println(">>>>>>>>>>>>>\n Virtual Channel testing starts >>>>>>>>>>>>> \n>>>>>>>>>>>>>")
+	challengeDuration := uint64(30)
+	assetVCMap := map[gpchannel.Asset][]float64{
+		&setup.Asset: {50.0, 50.0}, // 50 ckbytes each
+	}
+	initBals := test.NewAllocation(assetVCMap)
+	peers := []gpwire.Address{alicePC.WireAddress(), bobPC.WireAddress()}
+	parents := []gpchannel.ID{chAlice.State().ID, chBob.State().ID}
+	//gpchannel.Index is basically uint16
+	// indexMapAlice maps who locks funds in parent channel chAliceHub for the VC participants
+	// the VC proposer's funds are locked by the participant indexMapAlice[0] in chAliceHub
+	// the VC proposee's funds are locked by the participant indexMapAlice[1] in chAliceHub
+	// similarly for indexMapBob
+	indexMapAlice := []gpchannel.Index{0, 1}
+	indexMapBob := []gpchannel.Index{1, 0}
+	indexMaps := [][]gpchannel.Index{indexMapAlice, indexMapBob}
+	var aux gpchannel.Aux
+	copy(aux[:gpchannel.IDLen], chAlice.State().ID[:])
+	copy(aux[gpchannel.IDLen:], chBob.State().ID[:])
+	vcp, err := gpclient.NewVirtualChannelProposal(challengeDuration, &setup.Participants[0], initBals, peers, parents, indexMaps, gpclient.WithAux(aux))
+	assert.NoError(t, err)
+	log.Println("Virtual channel proposal created by Alice")
+
+	// open vc
+	chAliceVC := alicePC.OpenVirtualChannel(setup.Ctx, vcp, bobPC.WireAddress(), bobPC.PeerID())
+	chBobVC := bobPC.AcceptedChannel()
+	assert.NotNil(t, chAliceVC)
+	assert.NotNil(t, chBobVC)
+	assert.Equal(t, chAliceVC.State().ID, chBobVC.State().ID)
+	log.Println("Alice opened virtual channel with Bob")
+
+	// update vc
+	log.Println("Alice updating virtual channel")
+	chAliceVC.SendPayment(setup.Ctx, map[gpchannel.Asset]float64{
+		&setup.Asset: 20.0,
+	})
+	chBobVC.SendPayment(setup.Ctx, map[gpchannel.Asset]float64{
+		&setup.Asset: 10.0,
+	})
+
+	test.PrintBalances(chBobVC, setup.Asset)
+	//finalize vc
+	log.Println("Bob finalizing virtual channel")
+	err = chBobVC.Finalize(setup.Ctx)
+	assert.NoError(t, err)
+	// close vc
+	log.Println("Alice and Bob closing virtual channel")
+	// vcs := []*client.PaymentChannel{chAliceVC, chBobVC}
+	vcs := map[string]*client.PaymentChannel{
+		"Alice": chAliceVC,
+		"Bob":   chBobVC,
+	}
+	var success sync.WaitGroup
+	// errs               chan error
+	errs := make(chan error, 10)
+	success.Add(len(vcs))
+	// create go routines to settle vc and wait for all to finish
+	// need a way to log errors back from if a goroutine publishes any error
+	for name, vc := range vcs {
+		go func(c *client.PaymentChannel) {
+			fmt.Println("Settling vc for ", name)
+			err = c.Settle(setup.Ctx, name)
+			assert.NoError(t, err)
+			if err != nil {
+				errs <- err
+			}
+			fmt.Println("Settled vc for ", name)
+			success.Done()
+		}(vc)
+	}
+
+	select {
+	case <-success.WaitCh():
+		fmt.Println("All VCs settled successfully")
+	case err := <-errs:
+		fmt.Println("Error settling VCs: ", err)
+		t.Fatalf("Error in go-routine: %v", err)
+	}
+	fmt.Println("Closing Parent Channels")
+	chAlice.Settle(setup.Ctx, "Alice")
+	fmt.Println("Settled Alice's channel")
+	chBob.Settle(setup.Ctx, "Bob")
+	fmt.Println("Settled Bob's channel")
+	alicePC.Shutdown()
+	bobPC.Shutdown()
+	log.Println("Happy2 Test End")
 }

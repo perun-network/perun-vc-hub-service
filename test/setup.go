@@ -11,6 +11,7 @@ import (
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -62,6 +63,7 @@ type HubServiceInfo struct {
 	HubService  *service.HubService
 	CleanupFunc func()
 	HubClient   proto.VCHubServiceClient
+	User        *service.User
 }
 
 type HubProtocolInfo struct {
@@ -84,11 +86,13 @@ type Setup struct {
 	WscCleanupFuncs            []func()
 	WalletServices             []*chtest.MyWalletService
 	ChannelServiceClients      []chproto.ChannelServiceClient
+	ChannelServices            []*chservice.ChannelService
 	ChannelServiceCleanupFuncs []func()
 	Databases                  []*sortedkv.Database
 	HubWallet                  HubWalletInfo
 	HubService                 HubServiceInfo
 	HubProtocol                HubProtocolInfo
+	Users                      []*chservice.User
 }
 
 // NewTestSetup creates a new setup for testing.
@@ -143,18 +147,31 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 	aliceHubClient, aliceCS, aliceCSCleanup := setupChannelService(t, "alice", aliceWSC, Network, testConfig.RPCNodeURL, d, nil, &aliceDB)
 	bobHSClient, bobCS, bobCSCleanup := setupChannelService(t, "bob", bobWSC, Network, testConfig.RPCNodeURL, d, nil, &bobDB)
 	setup.ChannelServiceClients = []chproto.ChannelServiceClient{aliceHubClient, bobHSClient}
+	setup.ChannelServices = []*chservice.ChannelService{aliceCS, bobCS}
 	setup.ChannelServiceCleanupFuncs = []func(){aliceCSCleanup, bobCSCleanup}
 	log.Printf("Participants: %v", parts)
 
-	// Initialize Normal Users
-	for i, part := range parts[:2] {
-		if i == 0 {
-			_, err = aliceCS.InitializeUser(part, aliceWSC, external.NewWallet(chwallet.NewExternalClient(aliceWSC)))
-		} else {
-			_, err = bobCS.InitializeUser(part, bobWSC, external.NewWallet(chwallet.NewExternalClient(bobWSC)))
-		}
-		require.NoError(t, err, "error initializing user %d", i)
-	}
+	setup.Users = make([]*chservice.User, 2)
+	log.Println("Initializing Users")
+	aliceUser, err := aliceCS.InitializeUser(parts[0], aliceWSC, external.NewWallet(chwallet.NewExternalClient(aliceWSC)))
+	assert.NoError(t, err, "error initializing alice user")
+	setup.Users[0] = aliceUser
+	log.Println("Initialized alice user")
+	bobUser, err := bobCS.InitializeUser(parts[1], bobWSC, external.NewWallet(chwallet.NewExternalClient(bobWSC)))
+	assert.NoError(t, err, "error initializing bob user")
+	setup.Users[1] = bobUser
+	log.Println("Initialized bob user")
+	// // Initialize Normal Users
+	// for i, part := range parts[:2] {
+	// 	if i == 0 {
+	// 		user, err := aliceCS.InitializeUser(part, aliceWSC, external.NewWallet(chwallet.NewExternalClient(aliceWSC)))
+	// 		setup.Users[i] = user
+	// 	} else {
+	// 		user, err := bobCS.InitializeUser(part, bobWSC, external.NewWallet(chwallet.NewExternalClient(bobWSC)))
+	// 		setup.Users[i] = user
+	// 	}
+	// 	require.NoError(t, err, "error initializing user %d", i)
+	// }
 
 	//Initialize Hub Service and User
 	HubClient, HubService, HubCleanup := setupHubService(t, "hub", hubWSC, Network, testConfig.RPCNodeURL, d, nil, parts[2])
@@ -163,8 +180,10 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 		CleanupFunc: HubCleanup,
 		HubClient:   HubClient,
 	}
-	_, err = HubService.InitializeUser(parts[2], hubWSC, external.NewWallet(chwallet.NewExternalClient(hubWSC)))
+	hubUser, err := HubService.InitializeUser(parts[2], hubWSC, external.NewWallet(chwallet.NewExternalClient(hubWSC)))
 	require.NoError(t, err, "error initializing hub user")
+	setup.HubService.User = hubUser
+	log.Println("Initialized hub user")
 
 	setup.Asset = asset.Asset{
 		IsCKBytes: true,

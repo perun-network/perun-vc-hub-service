@@ -226,7 +226,27 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, responder *client.UpdateResponder) {
 	//a hub service should never recive an update unless we have a recurring fee model
 	//TODO: implement this when we have a recurring fee model
-	_ = responder.Reject(context.TODO(), "channel updates are not supported")
+	// _ = responder.Reject(context.TODO(), "channel updates are not supported")
+	// log.Println("Hub service received an update, but updates are not supported yet")
+	// _ = responder.Accept(context.TODO())
+	pbNewState, err := protobuf.FromState(update.State.Clone())
+	if err != nil {
+		_ = responder.Reject(context.TODO(), "unable to encode state")
+		return
+	}
+
+	resp, err := u.wsc.UpdateNotification(context.TODO(), &chproto.UpdateNotificationRequest{
+		State: pbNewState,
+	})
+	if err != nil {
+		_ = responder.Reject(context.TODO(), "unable to send update notification to wallet")
+		return
+	}
+	if resp.GetAccepted() {
+		_ = responder.Accept(context.TODO())
+	} else {
+		_ = responder.Reject(context.TODO(), "wallet rejected update")
+	}
 }
 
 // HandleAdjudicatorEvent handles an adjudicator event.
