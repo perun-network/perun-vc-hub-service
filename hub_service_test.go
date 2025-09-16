@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -154,4 +155,60 @@ func TestIsParticipantInNetwork(t *testing.T) {
 	require.NoError(t, err)
 	log.Println("IsParticipantinNetwork response:", resp.IsInNetwork)
 	assert.False(t, resp.IsInNetwork)
+}
+
+func TestGetFees(t *testing.T) {
+	testConfig := test.DevnetConfig()
+	setup := test.NewTestSetup(t, testConfig)
+
+	//setup
+	hubService := setup.HubService.HubService
+	hubClient := setup.HubService.HubClient
+	defer setup.HubService.CleanupFunc()
+	defer setup.HubWallet.CleanupFunc()
+	for _, fn := range setup.ChannelServiceCleanupFuncs {
+		defer fn()
+	}
+	for _, fn := range setup.WscCleanupFuncs {
+		defer fn()
+	}
+
+	// Hub Owner sets fee structure, watcher and assets he/she supports
+	supportedAssets := make([]gpchannel.Asset, 0)
+	supportedAssets = append(supportedAssets, &setup.Asset)
+	supportedAssets = append(supportedAssets, &setup.SudtAsset)
+	hubService.SetSupportedAssets(supportedAssets)
+
+	feeStructure := test.MockFeeStructure{}
+	fee := int64(100_000_000) // fee is 1 ckbyte (in shannons)
+	feeStructure.SetFlatFee(big.NewInt(fee))
+	hubService.SetFeeStructure(&feeStructure)
+
+	feeWatcher := &test.MockFeeWatcher{}
+	hubService.SetFeeWatcher(feeWatcher)
+
+	//Alice wants to know fees for opening a channel with the hub
+	ckbAssetBinary, err := setup.Asset.MarshalBinary()
+	assert.NoError(t, err)
+	sudtAssetBinary, err := setup.SudtAsset.MarshalBinary()
+	assert.NoError(t, err)
+	fundingAssets := make([]*proto.AssetAmount, 0)
+	fundingAssets = append(fundingAssets, &proto.AssetAmount{
+		Asset:               &proto.Asset{Asset: ckbAssetBinary},
+		BalanceDistribution: []string{"100", "100"}, // balance distribution of 100 ckbytes each
+	})
+	fundingAssets = append(fundingAssets, &proto.AssetAmount{
+		Asset:               &proto.Asset{Asset: sudtAssetBinary},
+		BalanceDistribution: []string{"1000", "1000"}, // balance distribution of 1000 sudt each
+	})
+
+	getFeesReq := proto.GetFeesRequest{
+		AssetsToFund: fundingAssets,
+	}
+	resp, err := hubClient.GetFees(context.Background(), &getFeesReq)
+	assert.NoError(t, err)
+
+	require.Equal(t, len(supportedAssets), len(resp.AssetFees))
+	require.Equal(t, resp.AssetFees[0].Fee, "1.00000000") // 1 ckbyte fee for ckb asset
+	require.Equal(t, resp.AssetFees[1].Fee, "1.00000000") // 1 ckbyte fee for sudt asset
 }
