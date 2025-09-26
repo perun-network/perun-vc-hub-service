@@ -227,11 +227,7 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 }
 
 func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, responder *client.UpdateResponder) {
-	//a hub service should never recive an update unless we have a recurring fee model
-	//TODO: implement this when we have a recurring fee model
-	// _ = responder.Reject(context.TODO(), "channel updates are not supported")
-	// log.Println("Hub service received an update, but updates are not supported yet")
-	// _ = responder.Accept(context.TODO())
+	//TODO: Extend this for recurring fee model
 	pbNewState, err := protobuf.FromState(update.State.Clone())
 	if err != nil {
 		_ = responder.Reject(context.TODO(), "unable to encode state")
@@ -254,6 +250,41 @@ func (u *User) HandleUpdate(_ *channel.State, update client.ChannelUpdate, respo
 
 // HandleAdjudicatorEvent handles an adjudicator event.
 func (u *User) HandleAdjudicatorEvent(event channel.AdjudicatorEvent) {
-	// TODO:
-	log.Printf("Adjudicator event: type = %T\n", event)
+	// TODO: add logic to autmoatically dispute the other parent channel, if disputed channel has a virtual channel
+	switch e := event.(type) {
+	case *channel.RegisteredEvent:
+		log.Printf("Hub recieved a RegisteredEvent: ID = %s, Version = %d\n", e.ID(), e.Version())
+		u.handleRegisteredEvent(e)
+	case *channel.ProgressedEvent:
+		log.Printf("Hub received a ProgressedEvent: ID = %s, Version = %d\n", e.ID(), e.Version())
+	case *channel.ConcludedEvent:
+		log.Printf("Hub received a ConcludedEvent: ID = %s\n", e.ID())
+	default:
+		log.Printf("Hub received an Unknown event type: %T\n", e)
+	}
+}
+
+func (u *User) handleRegisteredEvent(event *channel.RegisteredEvent) {
+	//TODO: Implement once dispute issue has been resolved.
+	registeredState := event.State
+	if registeredState == nil {
+		log.Printf("Registered event has nil state")
+		return
+	}
+	log.Printf("Registered state: Version = %d\n", registeredState.Version)
+	log.Printf("Registered state: IsFinal = %t\n", registeredState.IsFinal)
+	log.Printf("Registered state: ID = %s\n", registeredState.ID)
+	// _, ok := u.Channels[registeredState.ID]
+	// if !ok {
+	// 	log.Printf("Channel with ID %s not found", registeredState.ID)
+	// 	return
+	// }
+	// // check whether this channel has a locked balances, if it does then this is ID should be present in client.
+	// // we only look for 1 elem in []Suballoc because only 1 level of virtual channels are supported for now.
+	// vcID := registeredState.Allocation.Locked[0].ID
+	// _, err := u.PerunClient.Channel(vcID)
+	// if err != nil {
+	// 	log.Printf("vc channel not found")
+	// }
+
 }

@@ -21,7 +21,6 @@ func (s *HubService) UpdateChannel(ctx context.Context, req *proto.ChannelUpdate
 }
 
 func (s *HubService) CloseChannel(ctx context.Context, req *proto.ChannelCloseRequest) (*proto.ChannelCloseResponse, error) {
-	// panic("CloseChannel not implemented")
 	cid, user, err := s.GetChannelInfoFromRequest(req.GetChannelId())
 	if err != nil {
 		return nil, err
@@ -34,7 +33,6 @@ func (s *HubService) CloseChannel(ctx context.Context, req *proto.ChannelCloseRe
 }
 
 func (s *HubService) GetChannels(ctx context.Context, req *proto.GetChannelsRequest) (*proto.GetChannelsResponse, error) {
-	// panic("GetChannels not implemented")
 	u, err := s.getUserFromGetChannelsRequest(req)
 	if err != nil {
 		return nil, err

@@ -25,7 +25,7 @@ type ParticipantRegistry interface {
 }
 
 type LocalParticipantRegistry struct {
-	participants map[string]address.Participant
+	participants map[string]address.Participant // Maps CKB address string to Participant
 	mu           sync.RWMutex
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -32,7 +33,7 @@ type Migration struct {
 	DepGroupRecipes []interface{} `json:"dep_group_recipes"`
 }
 
-func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg string) (backend.Deployment, SUDTInfo, error) {
+func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg string, vcm Migration) (backend.Deployment, SUDTInfo, error) {
 	sudtInfo, err := m.GetSUDT()
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
@@ -48,6 +49,16 @@ func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg 
 	pfls := m.CellRecipes[3]
 	if pfls.Name != "pfls" {
 		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("third cell recipe must be pfls")
+	}
+
+	//VC scripts
+	vcts := vcm.CellRecipes[0]
+	if vcts.Name != "vcts" {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("fifth cell recipe must be vcts")
+	}
+	vcls := vcm.CellRecipes[1]
+	if vcls.Name != "vcls" {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("sixth cell recipe must be vcls")
 	}
 
 	// NOTE: The SUDT lock-arg always contains a newline character at the end.
@@ -75,6 +86,20 @@ func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg 
 			},
 			DepType: types.DepTypeCode,
 		},
+		VCTSDep: types.CellDep{
+			OutPoint: &types.OutPoint{
+				TxHash: types.HexToHash(vcts.TxHash),
+				Index:  vcts.Index,
+			},
+			DepType: types.DepTypeCode,
+		},
+		VCLSDep: types.CellDep{
+			OutPoint: &types.OutPoint{
+				TxHash: types.HexToHash(vcls.TxHash),
+				Index:  vcls.Index,
+			},
+			DepType: types.DepTypeCode,
+		},
 		PFLSDep: types.CellDep{
 			OutPoint: &types.OutPoint{
 				TxHash: types.HexToHash(pfls.TxHash),
@@ -86,6 +111,10 @@ func (m Migration) MakeDeployment(systemScripts SystemScripts, sudtOwnerLockArg 
 		PCTSHashType:    types.HashTypeData1,
 		PCLSCodeHash:    types.HexToHash(pcls.DataHash),
 		PCLSHashType:    types.HashTypeData1,
+		VCTSCodeHash:    types.HexToHash(vcts.DataHash),
+		VCTSHashType:    types.HashTypeData1,
+		VCLSCodeHash:    types.HexToHash(vcls.DataHash),
+		VCLSHashType:    types.HashTypeData1,
 		PFLSCodeHash:    types.HexToHash(pfls.DataHash),
 		PFLSHashType:    types.HashTypeData1,
 		PFLSMinCapacity: PFLSMinCapacity,
@@ -128,7 +157,7 @@ func (m Migration) GetSUDT() (*SUDTInfo, error) {
 	}, nil
 }
 
-func GetDeployment(migrationDir, systemScriptsDir, sudtOwnerLockArg string) (backend.Deployment, SUDTInfo, error) {
+func GetDeployment(migrationDir, migrationDirVC, systemScriptsDir, sudtOwnerLockArg string) (backend.Deployment, SUDTInfo, error) {
 	dir, err := os.ReadDir(migrationDir)
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
@@ -136,12 +165,38 @@ func GetDeployment(migrationDir, systemScriptsDir, sudtOwnerLockArg string) (bac
 	if len(dir) != 1 {
 		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("migration dir must contain exactly one file")
 	}
-	migrationName := dir[0].Name()
-	migrationFile, err := os.Open(path.Join(migrationDir, migrationName))
+
+	vc_dir, err := os.ReadDir(migrationDirVC)
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
 	}
-	defer migrationFile.Close()
+	if len(vc_dir) != 1 {
+		return backend.Deployment{}, SUDTInfo{}, fmt.Errorf("migration dir must contain exactly one file")
+	}
+
+	migrationName := dir[0].Name()
+	migrationFile, err := os.Open(path.Join(migrationDir, migrationName))
+	defer func() {
+		if err := migrationFile.Close(); err != nil {
+			log.Fatalf("failed to close migration file: %v\n", err)
+		}
+	}()
+	if err != nil {
+		return backend.Deployment{}, SUDTInfo{}, err
+	}
+
+	vcMigrationName := vc_dir[0].Name()
+	vcMigrationFile, err := os.Open(path.Join(migrationDirVC, vcMigrationName))
+	defer func() {
+		if err := vcMigrationFile.Close(); err != nil {
+			log.Fatalf("failed to close vc migration file: %v\n", err)
+		}
+	}()
+	if err != nil {
+		return backend.Deployment{}, SUDTInfo{}, err
+	}
+
+	//Read and marshall migration data
 	migrationData, err := io.ReadAll(migrationFile)
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
@@ -152,9 +207,23 @@ func GetDeployment(migrationDir, systemScriptsDir, sudtOwnerLockArg string) (bac
 		return backend.Deployment{}, SUDTInfo{}, err
 	}
 
+	// Read and unmarshall vc migration file
+	vcMigrationData, err := io.ReadAll(vcMigrationFile)
+	if err != nil {
+		return backend.Deployment{}, SUDTInfo{}, err
+	}
+	var vcMigration Migration
+	err = json.Unmarshal(vcMigrationData, &vcMigration)
+	if err != nil {
+		return backend.Deployment{}, SUDTInfo{}, err
+	}
+
 	ss, err := GetSystemScripts(systemScriptsDir)
 	if err != nil {
 		return backend.Deployment{}, SUDTInfo{}, err
 	}
-	return migration.MakeDeployment(ss, sudtOwnerLockArg)
+
+	log.Printf("Migration: %v\n", migration)
+	log.Printf("VC Migration: %v\n", vcMigration)
+	return migration.MakeDeployment(ss, sudtOwnerLockArg, vcMigration)
 }

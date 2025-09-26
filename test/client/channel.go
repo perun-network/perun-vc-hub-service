@@ -108,3 +108,7 @@ func (c PaymentChannel) Settle(ctx context.Context, name string) error {
 	log.Println(name, " closed channel ", c.ch.ID())
 	return nil
 }
+
+func (c PaymentChannel) GetPerunChannel() *client.Channel {
+	return c.ch
+}

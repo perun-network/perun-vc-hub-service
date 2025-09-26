@@ -38,19 +38,20 @@ import (
 )
 
 const (
-	devNetURL              = "http://localhost:8114"
-	testNetURL             = "https://testnet.ckbapp.dev/"
-	devNetDir              = "devnet"          // DevNetDir is the directory where the devnet configuration is located.
-	testNetDir             = "testnet"         // TestNetDir is the directory where the testnet configuration is located.
-	Network                = types.NetworkTest // Network is the network used for testing.
-	bufSize                = 1024 * 1024
-	sudtMaxCapacity        = 200_00_000_000 // 200 ckb
-	SUDTOwnerLockArgFile   = "accounts/sudt-owner-lock-hash.txt"
-	ContractMigrationsPath = "contracts/migrations/dev/"
-	SystemScriptsDir       = "system_scripts"
-	AlicePKFile            = "accounts/alice.pk"
-	BobPKFile              = "accounts/bob.pk"
-	HubOwnerPKFile         = "accounts/ingrid.pk"
+	devNetURL                = "http://localhost:8114"
+	testNetURL               = "https://testnet.ckbapp.dev/"
+	devNetDir                = "devnet"          // DevNetDir is the directory where the devnet configuration is located.
+	testNetDir               = "testnet"         // TestNetDir is the directory where the testnet configuration is located.
+	Network                  = types.NetworkTest // Network is the network used for testing.
+	bufSize                  = 1024 * 1024
+	sudtMaxCapacity          = 200_00_000_000 // 200 ckb
+	SUDTOwnerLockArgFile     = "accounts/sudt-owner-lock-hash.txt"
+	ContractMigrationsPath   = "contracts/migrations/dev/"
+	ContractMigrationsVCPath = "contracts/migrations_vc/dev/"
+	SystemScriptsDir         = "system_scripts"
+	AlicePKFile              = "accounts/alice.pk"
+	BobPKFile                = "accounts/bob.pk"
+	HubOwnerPKFile           = "accounts/ingrid.pk"
 )
 
 type HubWalletInfo struct {
@@ -102,7 +103,9 @@ func NewTestSetup(t *testing.T, testConfig *TestConfig) *Setup {
 	sudtOwnerLockArg, err := parseSUDTOwnerLockArg(testConfig.NetworkDirectory + "/" + SUDTOwnerLockArgFile)
 	require.NoError(t, err, "error getting SUDT owner lock arg")
 
-	d, sudtInfo, err := deployment.GetDeployment(testConfig.NetworkDirectory+"/"+ContractMigrationsPath, testConfig.NetworkDirectory+"/"+SystemScriptsDir, sudtOwnerLockArg)
+	migrationPath := testConfig.NetworkDirectory + "/" + ContractMigrationsPath
+	migrationVCPath := testConfig.NetworkDirectory + "/" + ContractMigrationsVCPath
+	d, sudtInfo, err := deployment.GetDeployment(migrationPath, migrationVCPath, testConfig.NetworkDirectory+"/"+SystemScriptsDir, sudtOwnerLockArg)
 	require.NoError(t, err, "error getting deployment")
 	setup.Deployment = d
 	setup.SUDTInfo = sudtInfo

@@ -3,25 +3,19 @@ package test
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/types"
-	"github.com/perun-network/perun-libp2p-wire/p2p"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
-	"perun.network/vc-hub-service/service"
 	"perun.network/vc-hub-service/test/client"
 	"perun.network/vc-hub-service/test/deployment"
-	"polycry.pt/poly-go/sortedkv/memorydb"
-
-	"perun.network/go-perun/channel/persistence/keyvalue"
 
 	"perun.network/perun-ckb-backend/backend"
 	"perun.network/perun-ckb-backend/channel/asset"
@@ -72,7 +66,9 @@ func NewPaymentClientSetup(t *testing.T, testConfig *TestConfig) *PaymentClientS
 	sudtOwnerLockArg, err := parseSUDTOwnerLockArg(testConfig.NetworkDirectory + "/" + SUDTOwnerLockArgFile)
 	require.NoError(t, err, "error getting SUDT owner lock arg")
 
-	d, sudtInfo, err := deployment.GetDeployment(testConfig.NetworkDirectory+"/"+ContractMigrationsPath, testConfig.NetworkDirectory+"/"+SystemScriptsDir, sudtOwnerLockArg)
+	migrationPath := testConfig.NetworkDirectory + "/" + ContractMigrationsPath
+	migrationVCPath := testConfig.NetworkDirectory + "/" + ContractMigrationsVCPath
+	d, sudtInfo, err := deployment.GetDeployment(migrationPath, migrationVCPath, testConfig.NetworkDirectory+"/"+SystemScriptsDir, sudtOwnerLockArg)
 	require.NoError(t, err, "error getting deployment")
 	setup.Deployment = d
 	setup.SUDTInfo = sudtInfo
@@ -148,20 +144,6 @@ func NewPaymentClientSetup(t *testing.T, testConfig *TestConfig) *PaymentClientS
 }
 
 func setupPaymentClient(t *testing.T, name string, config *TestConfig, d backend.Deployment, acc *ckbwallet.Account, key secp256k1.PrivateKey, w *ckbwallet.EphemeralWallet, part ckbaddr.Participant) (*client.PaymentClient, func(), error) {
-	wireAcc := p2p.NewRandomAccount(rand.New(rand.NewSource(time.Now().UnixNano())))
-	net, err := p2p.NewP2PBus(wireAcc)
-	assert.NoError(t, err, "error creating p2p net")
-	assert.NotNil(t, net, "p2p net is nil")
-	log.Println("wire address of ", name, ":", wireAcc.Address())
-
-	resolver := service.NewRelayServerResolver(wireAcc)
-	resolver.SetWire(&part, wireAcc.Address())
-	bus := net.Bus
-	listener := net.Listener
-	go bus.Listen(listener)
-
-	pr := keyvalue.NewPersistRestorer(memorydb.NewDatabase())
-
 	pclient, err := client.NewPaymentClient(
 		name,
 		Network,
@@ -170,15 +152,10 @@ func setupPaymentClient(t *testing.T, name string, config *TestConfig, d backend
 		acc,
 		key,
 		w,
-		pr,
-		wireAcc.Address(),
-		net,
 	)
+	assert.NoError(t, err, "error creating payment client for "+name)
 	return pclient, func() {
-		err = net.Bus.Close()
-		if err != nil {
-			log.Printf("error closing bus: %v", err)
-		}
+		pclient.Shutdown()
 
 	}, err
 }

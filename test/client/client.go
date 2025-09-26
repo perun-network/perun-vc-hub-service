@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"math/rand"
+	"time"
 
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/nervosnetwork/ckb-sdk-go/v2/rpc"
@@ -25,7 +27,6 @@ import (
 	"github.com/perun-network/perun-libp2p-wire/p2p"
 
 	gpchannel "perun.network/go-perun/channel"
-	"perun.network/go-perun/channel/persistence"
 	"perun.network/go-perun/client"
 	gpwallet "perun.network/go-perun/wallet"
 	"perun.network/go-perun/watcher/local"
@@ -52,6 +53,7 @@ type PaymentClient struct {
 	PerunClient  *client.Client
 	net          *p2p.Net
 	channels     chan *PaymentChannel
+	AddrResolver service.AddressResolver
 	rpcClient    rpc.Client
 }
 
@@ -63,11 +65,16 @@ func NewPaymentClient(
 	account *wallet.Account,
 	key secp256k1.PrivateKey,
 	wallet *wallet.EphemeralWallet,
-	persistRestorer persistence.PersistRestorer,
-	wAddr wire.Address,
-	net *p2p.Net,
-
 ) (*PaymentClient, error) {
+	wireAcc := p2p.NewRandomAccount(rand.New(rand.NewSource(time.Now().UnixNano())))
+	wireNet, err := p2p.NewP2PBus(wireAcc)
+	if err != nil {
+		return nil, err
+	}
+	go wireNet.Bus.Listen(wireNet.Listener)
+	addrResolver := service.NewRelayServerResolver(wireAcc)
+	addrResolver.SetWire(address.AsParticipant(account.Address()), wireAcc.Address())
+
 	backendRPCClient, err := rpc.Dial(rpcUrl)
 	if err != nil {
 		return nil, err
@@ -85,27 +92,28 @@ func NewPaymentClient(
 		return nil, err
 	}
 
-	perunClient, err := client.New(wAddr, net.Bus, f, a, wallet, watcher)
+	wAddr := wireAcc.Address()
+	perunClient, err := client.New(wAddr, wireNet.Bus, f, a, wallet, watcher)
 	if err != nil {
 		return nil, err
 	}
-	perunClient.EnablePersistence(persistRestorer)
 
 	balanceRPC, err := rpc.Dial(rpcUrl)
 	if err != nil {
 		return nil, err
 	}
 	p := &PaymentClient{
-		Name:        name,
-		balance:     big.NewInt(0),
-		sudtBalance: big.NewInt(0),
-		Account:     account,
-		wAddr:       wAddr,
-		Network:     network,
-		PerunClient: perunClient,
-		channels:    make(chan *PaymentChannel, 1),
-		rpcClient:   balanceRPC,
-		net:         net,
+		Name:         name,
+		balance:      big.NewInt(0),
+		sudtBalance:  big.NewInt(0),
+		Account:      account,
+		wAddr:        wAddr,
+		Network:      network,
+		PerunClient:  perunClient,
+		channels:     make(chan *PaymentChannel, 1),
+		AddrResolver: addrResolver,
+		rpcClient:    balanceRPC,
+		net:          wireNet,
 	}
 
 	go perunClient.Handle(p, p)
@@ -139,10 +147,13 @@ func (p *PaymentClient) GetBalances() string {
 }
 
 // OpenChannel opens a new channel with the specified peer and funding.
-func (p *PaymentClient) OpenChannel(ctx context.Context, peer wire.Address, peerID string, amounts map[gpchannel.Asset]float64) *PaymentChannel {
+func (p *PaymentClient) OpenChannel(ctx context.Context, peer gpwallet.Address, amounts map[gpchannel.Asset]float64) *PaymentChannel {
 	// We define the channel participants. The proposer always has index 0.
-	participants := []wire.Address{p.WireAddress(), peer}
-	p.net.Dialer.Register(peer, peerID)
+	peerWireAddr, err := p.SetPeerWireAddr(peer)
+	if err != nil {
+		panic(err)
+	}
+	participants := []wire.Address{p.WireAddress(), peerWireAddr}
 
 	assets := make([]gpchannel.Asset, len(amounts))
 	i := 0
@@ -198,8 +209,24 @@ func (p *PaymentClient) OpenChannel(ctx context.Context, peer wire.Address, peer
 	return newPaymentChannel(ch, assets)
 }
 
-func (p *PaymentClient) OpenVirtualChannel(ctx context.Context, vcp client.ChannelProposal, peer wire.Address, peerID string) *PaymentChannel {
-	p.net.Dialer.Register(peer, peerID)
+func (p *PaymentClient) SetPeerWireAddr(peer gpwallet.Address) (wire.Address, error) {
+	peerWireAddr, err := p.AddrResolver.GetWireAddress(peer)
+	if err != nil {
+		return nil, err
+	}
+	peerLibp2pAddr, ok := peerWireAddr.(*p2p.Address)
+	if !ok {
+		panic("peer address is not of type *p2p.Address")
+	}
+	p.net.Dialer.Register(peerWireAddr, peerLibp2pAddr.String())
+	return peerWireAddr, nil
+}
+
+func (p *PaymentClient) OpenVirtualChannel(ctx context.Context, vcp client.ChannelProposal, peer gpwallet.Address) *PaymentChannel {
+	_, err := p.SetPeerWireAddr(peer)
+	if err != nil {
+		panic(err)
+	}
 
 	ch, err := p.PerunClient.ProposeChannel(ctx, vcp)
 	if err != nil {
@@ -228,30 +255,9 @@ func (p *PaymentClient) AcceptedChannel() *PaymentChannel {
 
 func (p *PaymentClient) Shutdown() {
 	p.PerunClient.Close()
+	err := p.net.Bus.Close()
+	if err != nil {
+		fmt.Println("Error closing bus:", err)
+	}
+
 }
-
-// func (c *PaymentClient) Restore(peer wire.Address, peerID string) []*PaymentChannel {
-// 	var restoredChannels []*client.Channel
-// 	//c.net.Dialer.Register(peer, peerID)
-// 	//TODO: Remove this hack. Find why asset is not found upon restoring
-// 	c.PerunClient.OnNewChannel(func(ch *client.Channel) {
-// 		restoredChannels = append(restoredChannels, ch)
-// 	})
-
-// 	err := c.PerunClient.Restore(context.TODO())
-// 	if err != nil {
-// 		fmt.Println("Error restoring channels")
-// 	}
-
-// 	paymentChannels := make([]*PaymentChannel, len(restoredChannels))
-// 	assets := make([]gpchannel.Asset, 1)
-// 	assets = append(assets, &asset.Asset{
-// 		IsCKBytes: true,
-// 		SUDT:      nil,
-// 	})
-// 	for i, ch := range restoredChannels {
-// 		paymentChannels[i] = newPaymentChannel(ch, assets)
-// 	}
-
-// 	return paymentChannels
-// }
