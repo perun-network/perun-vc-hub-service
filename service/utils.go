@@ -5,8 +5,11 @@ import (
 	"math/big"
 
 	"perun.network/go-perun/channel"
+	"perun.network/go-perun/client"
 	"perun.network/go-perun/wire/protobuf"
 	"perun.network/perun-ckb-backend/channel/asset"
+	"perun.network/perun-ckb-backend/wallet/address"
+	"perun.network/vc-hub-service/rpc/proto"
 )
 
 // CKByteToShannon converts a given amount in CKByte to Shannon.
@@ -95,4 +98,30 @@ func AsChannelID(in []byte) (channel.ID, error) {
 		return channel.ID{}, fmt.Errorf("channel id too short: expected %d bytes, got %d", len(id), n)
 	}
 	return id, nil
+}
+
+// get assets for a given participant. This participant must be part of one of the channels.
+func getAssetsForParticipant(channels map[channel.ID]*client.Channel, part address.Participant) ([]channel.Asset, error) {
+	for _, ch := range channels {
+		participants := ch.Params().Parts
+		for _, p := range participants {
+			if p.Equal(&part) {
+				return ch.State().Assets, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("participant not found in any channel")
+}
+
+// convert channel assets to proto assets
+func channelAssetsToProtoAsset(assets []channel.Asset) ([]*proto.Asset, error) {
+	protoAssets := make([]*proto.Asset, len(assets))
+	for i, a := range assets {
+		data, err := a.MarshalBinary()
+		if err != nil {
+			return nil, fmt.Errorf("marshalling asset %d: %w", i, err)
+		}
+		protoAssets[i] = &proto.Asset{Asset: data}
+	}
+	return protoAssets, nil
 }

@@ -100,7 +100,6 @@ func TestGetPaymentAddress(t *testing.T) {
 
 func TestIsParticipantInNetwork(t *testing.T) {
 	testConfig := test.DevnetConfig()
-	// setup := test.NewTestSetup(t, testConfig)
 	setup := test.NewPaymentClientSetup(t, testConfig)
 
 	hubService := setup.HubService.HubService
@@ -140,20 +139,20 @@ func TestIsParticipantInNetwork(t *testing.T) {
 	})
 	require.NotNil(t, chAlice)
 	log.Println("Alice opened channel with hub with id:", chAlice.State().ID)
-
-	resp, err := hubClient.IsParticipantInNetwork(context.Background(), &proto.IsParticipantInNetworkRequest{
+	log.Println("Checking whether Alice is in network: ", aliceCkbAddr)
+	resp, err := hubClient.IsAddressInNetwork(context.Background(), &proto.IsAddressInNetworkRequest{
 		Address: aliceCkbAddr,
 	})
 	require.NoError(t, err)
-	log.Println("IsParticipantinNetwork response:", resp.IsInNetwork)
-	assert.True(t, resp.IsInNetwork)
+	require.IsType(t, &proto.IsAddressInNetworkResponse_Peer{}, resp.Msg)
+	respInfo := resp.Msg.(*proto.IsAddressInNetworkResponse_Peer)
+	log.Printf("Address %v is present in network with L2 address", respInfo.Peer.WireAddress)
 
-	resp, err = hubClient.IsParticipantInNetwork(context.Background(), &proto.IsParticipantInNetworkRequest{
+	resp, err = hubClient.IsAddressInNetwork(context.Background(), &proto.IsAddressInNetworkRequest{
 		Address: bobCkbAddr,
 	})
 	require.NoError(t, err)
-	log.Println("IsParticipantinNetwork response:", resp.IsInNetwork)
-	assert.False(t, resp.IsInNetwork)
+	require.IsType(t, &proto.IsAddressInNetworkResponse_Rejected{}, resp.Msg)
 	chAlice.Settle(setup.Ctx, "Alice")
 	alicePC.Shutdown()
 	log.Println("TestIsParticipantInNetwork finished")

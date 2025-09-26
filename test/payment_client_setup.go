@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
+	"perun.network/vc-hub-service/service"
 	"perun.network/vc-hub-service/test/client"
 	"perun.network/vc-hub-service/test/deployment"
 	"polycry.pt/poly-go/sortedkv/memorydb"
@@ -103,11 +104,11 @@ func NewPaymentClientSetup(t *testing.T, testConfig *TestConfig) *PaymentClientS
 
 	log.Printf("Participants: %v", parts)
 	//setup payment clients
-	alicePC, alicePCCleanUp, err := setupPaymentClient(t, "alice", testConfig, d, aliceAccount, *alicePrivateKey, w)
+	alicePC, alicePCCleanUp, err := setupPaymentClient(t, "alice", testConfig, d, aliceAccount, *alicePrivateKey, w, parts[0])
 	require.NoError(t, err, "error creating alice's payment client")
 	setup.PaymentClients = append(setup.PaymentClients, alicePC)
 	setup.PaymentClientsCleanUp = append(setup.PaymentClientsCleanUp, alicePCCleanUp)
-	bobPC, bobPCCleanup, err := setupPaymentClient(t, "bob", testConfig, d, bobAccount, *bobPrivateKey, w)
+	bobPC, bobPCCleanup, err := setupPaymentClient(t, "bob", testConfig, d, bobAccount, *bobPrivateKey, w, parts[1])
 	require.NoError(t, err, "error creating bob's payment client")
 	setup.PaymentClients = append(setup.PaymentClients, bobPC)
 	setup.PaymentClientsCleanUp = append(setup.PaymentClientsCleanUp, bobPCCleanup)
@@ -146,12 +147,15 @@ func NewPaymentClientSetup(t *testing.T, testConfig *TestConfig) *PaymentClientS
 	return setup
 }
 
-func setupPaymentClient(t *testing.T, name string, config *TestConfig, d backend.Deployment, acc *ckbwallet.Account, key secp256k1.PrivateKey, w *ckbwallet.EphemeralWallet) (*client.PaymentClient, func(), error) {
+func setupPaymentClient(t *testing.T, name string, config *TestConfig, d backend.Deployment, acc *ckbwallet.Account, key secp256k1.PrivateKey, w *ckbwallet.EphemeralWallet, part ckbaddr.Participant) (*client.PaymentClient, func(), error) {
 	wireAcc := p2p.NewRandomAccount(rand.New(rand.NewSource(time.Now().UnixNano())))
 	net, err := p2p.NewP2PBus(wireAcc)
 	assert.NoError(t, err, "error creating p2p net")
 	assert.NotNil(t, net, "p2p net is nil")
 	log.Println("wire address of ", name, ":", wireAcc.Address())
+
+	resolver := service.NewRelayServerResolver(wireAcc)
+	resolver.SetWire(&part, wireAcc.Address())
 	bus := net.Bus
 	listener := net.Listener
 	go bus.Listen(listener)

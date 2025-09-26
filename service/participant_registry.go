@@ -19,6 +19,8 @@ type ParticipantRegistry interface {
 
 	GetAllParticipants() ([]address.Participant, error)
 
+	GetParticipant(addr string) (address.Participant, error)
+
 	RemoveParticipant(part address.Participant) error
 }
 
@@ -70,6 +72,17 @@ func (r *LocalParticipantRegistry) GetAllParticipants() ([]address.Participant, 
 		participants = append(participants, part)
 	}
 	return participants, nil
+}
+
+func (r *LocalParticipantRegistry) GetParticipant(addr string) (address.Participant, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	part, exists := r.participants[addr]
+	if !exists {
+		return address.Participant{}, fmt.Errorf("participant with address %s not found", addr)
+	}
+	return part, nil
 }
 
 func (r *LocalParticipantRegistry) RemoveParticipant(part address.Participant) error {

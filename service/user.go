@@ -212,7 +212,10 @@ func (u *User) HandleProposal(proposal client.ChannelProposal, responder *client
 	if err != nil {
 		panic(fmt.Sprintf("encoding proposer addr: %v", err))
 	}
-	participantRegistry.RegisterParticipant(proposerCkbAddr, *proposalPart)
+	err = participantRegistry.RegisterParticipant(proposerCkbAddr, *proposalPart)
+	if err != nil {
+		log.Println("error saving participant in registery while handling proposal", err)
+	}
 	ch, err := responder.Accept(context.TODO(), &cpa)
 	if err != nil {
 		panic(err)

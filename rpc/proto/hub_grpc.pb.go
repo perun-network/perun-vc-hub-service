@@ -19,13 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VCHubService_GetAssetsByHub_FullMethodName         = "/vc_hub.VCHubService/GetAssetsByHub"
-	VCHubService_GetFees_FullMethodName                = "/vc_hub.VCHubService/GetFees"
-	VCHubService_IsParticipantInNetwork_FullMethodName = "/vc_hub.VCHubService/IsParticipantInNetwork"
-	VCHubService_GetPaymentAddress_FullMethodName      = "/vc_hub.VCHubService/GetPaymentAddress"
-	VCHubService_UpdateChannel_FullMethodName          = "/vc_hub.VCHubService/UpdateChannel"
-	VCHubService_CloseChannel_FullMethodName           = "/vc_hub.VCHubService/CloseChannel"
-	VCHubService_GetChannels_FullMethodName            = "/vc_hub.VCHubService/GetChannels"
+	VCHubService_GetAssetsByHub_FullMethodName     = "/vc_hub.VCHubService/GetAssetsByHub"
+	VCHubService_GetFees_FullMethodName            = "/vc_hub.VCHubService/GetFees"
+	VCHubService_IsAddressInNetwork_FullMethodName = "/vc_hub.VCHubService/IsAddressInNetwork"
+	VCHubService_GetPaymentAddress_FullMethodName  = "/vc_hub.VCHubService/GetPaymentAddress"
+	VCHubService_UpdateChannel_FullMethodName      = "/vc_hub.VCHubService/UpdateChannel"
+	VCHubService_CloseChannel_FullMethodName       = "/vc_hub.VCHubService/CloseChannel"
+	VCHubService_GetChannels_FullMethodName        = "/vc_hub.VCHubService/GetChannels"
 )
 
 // VCHubServiceClient is the client API for VCHubService service.
@@ -35,7 +35,7 @@ type VCHubServiceClient interface {
 	// VC-Hub related RPCs
 	GetAssetsByHub(ctx context.Context, in *GetAssetsByHubRequest, opts ...grpc.CallOption) (*GetAssetsByHubResponse, error)
 	GetFees(ctx context.Context, in *GetFeesRequest, opts ...grpc.CallOption) (*GetFeesResponse, error)
-	IsParticipantInNetwork(ctx context.Context, in *IsParticipantInNetworkRequest, opts ...grpc.CallOption) (*IsParticipantInNetworkResponse, error)
+	IsAddressInNetwork(ctx context.Context, in *IsAddressInNetworkRequest, opts ...grpc.CallOption) (*IsAddressInNetworkResponse, error)
 	GetPaymentAddress(ctx context.Context, in *GetPaymentAddrRequest, opts ...grpc.CallOption) (*GetPaymentAddrResponse, error)
 	// Perun related RPCs
 	UpdateChannel(ctx context.Context, in *ChannelUpdateRequest, opts ...grpc.CallOption) (*ChannelUpdateResponse, error)
@@ -71,10 +71,10 @@ func (c *vCHubServiceClient) GetFees(ctx context.Context, in *GetFeesRequest, op
 	return out, nil
 }
 
-func (c *vCHubServiceClient) IsParticipantInNetwork(ctx context.Context, in *IsParticipantInNetworkRequest, opts ...grpc.CallOption) (*IsParticipantInNetworkResponse, error) {
+func (c *vCHubServiceClient) IsAddressInNetwork(ctx context.Context, in *IsAddressInNetworkRequest, opts ...grpc.CallOption) (*IsAddressInNetworkResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IsParticipantInNetworkResponse)
-	err := c.cc.Invoke(ctx, VCHubService_IsParticipantInNetwork_FullMethodName, in, out, cOpts...)
+	out := new(IsAddressInNetworkResponse)
+	err := c.cc.Invoke(ctx, VCHubService_IsAddressInNetwork_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ type VCHubServiceServer interface {
 	// VC-Hub related RPCs
 	GetAssetsByHub(context.Context, *GetAssetsByHubRequest) (*GetAssetsByHubResponse, error)
 	GetFees(context.Context, *GetFeesRequest) (*GetFeesResponse, error)
-	IsParticipantInNetwork(context.Context, *IsParticipantInNetworkRequest) (*IsParticipantInNetworkResponse, error)
+	IsAddressInNetwork(context.Context, *IsAddressInNetworkRequest) (*IsAddressInNetworkResponse, error)
 	GetPaymentAddress(context.Context, *GetPaymentAddrRequest) (*GetPaymentAddrResponse, error)
 	// Perun related RPCs
 	UpdateChannel(context.Context, *ChannelUpdateRequest) (*ChannelUpdateResponse, error)
@@ -150,8 +150,8 @@ func (UnimplementedVCHubServiceServer) GetAssetsByHub(context.Context, *GetAsset
 func (UnimplementedVCHubServiceServer) GetFees(context.Context, *GetFeesRequest) (*GetFeesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFees not implemented")
 }
-func (UnimplementedVCHubServiceServer) IsParticipantInNetwork(context.Context, *IsParticipantInNetworkRequest) (*IsParticipantInNetworkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsParticipantInNetwork not implemented")
+func (UnimplementedVCHubServiceServer) IsAddressInNetwork(context.Context, *IsAddressInNetworkRequest) (*IsAddressInNetworkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsAddressInNetwork not implemented")
 }
 func (UnimplementedVCHubServiceServer) GetPaymentAddress(context.Context, *GetPaymentAddrRequest) (*GetPaymentAddrResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentAddress not implemented")
@@ -222,20 +222,20 @@ func _VCHubService_GetFees_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VCHubService_IsParticipantInNetwork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IsParticipantInNetworkRequest)
+func _VCHubService_IsAddressInNetwork_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsAddressInNetworkRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VCHubServiceServer).IsParticipantInNetwork(ctx, in)
+		return srv.(VCHubServiceServer).IsAddressInNetwork(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: VCHubService_IsParticipantInNetwork_FullMethodName,
+		FullMethod: VCHubService_IsAddressInNetwork_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VCHubServiceServer).IsParticipantInNetwork(ctx, req.(*IsParticipantInNetworkRequest))
+		return srv.(VCHubServiceServer).IsAddressInNetwork(ctx, req.(*IsAddressInNetworkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -328,8 +328,8 @@ var VCHubService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _VCHubService_GetFees_Handler,
 		},
 		{
-			MethodName: "IsParticipantInNetwork",
-			Handler:    _VCHubService_IsParticipantInNetwork_Handler,
+			MethodName: "IsAddressInNetwork",
+			Handler:    _VCHubService_IsAddressInNetwork_Handler,
 		},
 		{
 			MethodName: "GetPaymentAddress",

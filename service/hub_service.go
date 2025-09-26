@@ -182,15 +182,50 @@ func (s *HubService) GetFees(ctx context.Context, req *proto.GetFeesRequest) (*p
 	}, nil
 }
 
-// TODO: When a participant has a ledger channel with hub, then add it to the participants list.
-func (s *HubService) IsParticipantInNetwork(ctx context.Context, req *proto.IsParticipantInNetworkRequest) (*proto.IsParticipantInNetworkResponse, error) {
+func (s *HubService) IsAddressInNetwork(ctx context.Context, req *proto.IsAddressInNetworkRequest) (*proto.IsAddressInNetworkResponse, error) {
 	addr := req.Address
 	res, error := participantRegistry.IsAddressInNetwork(addr)
 	if error != nil {
-		return nil, error
+		return nil, fmt.Errorf("error while querying if address is in network: %w", error)
 	}
-	return &proto.IsParticipantInNetworkResponse{
-		IsInNetwork: res,
+
+	// If address is not in network, return Rejected message
+	if !res {
+		return &proto.IsAddressInNetworkResponse{
+			Msg: &proto.IsAddressInNetworkResponse_Rejected{
+				Rejected: &proto.Rejected{
+					Reason: fmt.Sprintf("Address %s not in network", addr),
+				},
+			},
+		}, nil
+	}
+	part, err := participantRegistry.GetParticipant(addr)
+	if err != nil {
+		return nil, fmt.Errorf("error while getting participant from registry: %w", err)
+	}
+	wireAddr, err := s.resolver.GetWireAddress(&part)
+	if err != nil {
+		return nil, fmt.Errorf("error while getting wire address from resolver: %w", err)
+	}
+	libp2pAddr, ok := wireAddr.(*p2p.Address)
+	if !ok {
+		return nil, fmt.Errorf("address returned from resolver is not a libp2p address")
+	}
+	assets, err := getAssetsForParticipant(s.user.Channels, part)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get gpchannel assets for participant: %w", err)
+	}
+	partAssets, err := channelAssetsToProtoAsset(assets)
+	if err != nil {
+		return nil, fmt.Errorf("cannot marshall gpchannel assets: %w", err)
+	}
+	return &proto.IsAddressInNetworkResponse{
+		Msg: &proto.IsAddressInNetworkResponse_Peer{
+			Peer: &proto.PeerInformation{
+				WireAddress: libp2pAddr.String(),
+				Assets:      partAssets,
+			},
+		},
 	}, nil
 }
 

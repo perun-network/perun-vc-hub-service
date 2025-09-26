@@ -191,27 +191,27 @@ func (x *GetAssetsByHubResponse) GetAssets() []*Asset {
 	return nil
 }
 
-type IsParticipantInNetworkRequest struct {
+type IsAddressInNetworkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *IsParticipantInNetworkRequest) Reset() {
-	*x = IsParticipantInNetworkRequest{}
+func (x *IsAddressInNetworkRequest) Reset() {
+	*x = IsAddressInNetworkRequest{}
 	mi := &file_hub_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IsParticipantInNetworkRequest) String() string {
+func (x *IsAddressInNetworkRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IsParticipantInNetworkRequest) ProtoMessage() {}
+func (*IsAddressInNetworkRequest) ProtoMessage() {}
 
-func (x *IsParticipantInNetworkRequest) ProtoReflect() protoreflect.Message {
+func (x *IsAddressInNetworkRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_hub_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -223,39 +223,43 @@ func (x *IsParticipantInNetworkRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IsParticipantInNetworkRequest.ProtoReflect.Descriptor instead.
-func (*IsParticipantInNetworkRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use IsAddressInNetworkRequest.ProtoReflect.Descriptor instead.
+func (*IsAddressInNetworkRequest) Descriptor() ([]byte, []int) {
 	return file_hub_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *IsParticipantInNetworkRequest) GetAddress() string {
+func (x *IsAddressInNetworkRequest) GetAddress() string {
 	if x != nil {
 		return x.Address
 	}
 	return ""
 }
 
-type IsParticipantInNetworkResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	IsInNetwork   bool                   `protobuf:"varint,1,opt,name=is_in_network,json=isInNetwork,proto3" json:"is_in_network,omitempty"`
+type IsAddressInNetworkResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Msg:
+	//
+	//	*IsAddressInNetworkResponse_Rejected
+	//	*IsAddressInNetworkResponse_Peer
+	Msg           isIsAddressInNetworkResponse_Msg `protobuf_oneof:"msg"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *IsParticipantInNetworkResponse) Reset() {
-	*x = IsParticipantInNetworkResponse{}
+func (x *IsAddressInNetworkResponse) Reset() {
+	*x = IsAddressInNetworkResponse{}
 	mi := &file_hub_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IsParticipantInNetworkResponse) String() string {
+func (x *IsAddressInNetworkResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IsParticipantInNetworkResponse) ProtoMessage() {}
+func (*IsAddressInNetworkResponse) ProtoMessage() {}
 
-func (x *IsParticipantInNetworkResponse) ProtoReflect() protoreflect.Message {
+func (x *IsAddressInNetworkResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_hub_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -267,16 +271,102 @@ func (x *IsParticipantInNetworkResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IsParticipantInNetworkResponse.ProtoReflect.Descriptor instead.
-func (*IsParticipantInNetworkResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use IsAddressInNetworkResponse.ProtoReflect.Descriptor instead.
+func (*IsAddressInNetworkResponse) Descriptor() ([]byte, []int) {
 	return file_hub_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *IsParticipantInNetworkResponse) GetIsInNetwork() bool {
+func (x *IsAddressInNetworkResponse) GetMsg() isIsAddressInNetworkResponse_Msg {
 	if x != nil {
-		return x.IsInNetwork
+		return x.Msg
 	}
-	return false
+	return nil
+}
+
+func (x *IsAddressInNetworkResponse) GetRejected() *Rejected {
+	if x != nil {
+		if x, ok := x.Msg.(*IsAddressInNetworkResponse_Rejected); ok {
+			return x.Rejected
+		}
+	}
+	return nil
+}
+
+func (x *IsAddressInNetworkResponse) GetPeer() *PeerInformation {
+	if x != nil {
+		if x, ok := x.Msg.(*IsAddressInNetworkResponse_Peer); ok {
+			return x.Peer
+		}
+	}
+	return nil
+}
+
+type isIsAddressInNetworkResponse_Msg interface {
+	isIsAddressInNetworkResponse_Msg()
+}
+
+type IsAddressInNetworkResponse_Rejected struct {
+	Rejected *Rejected `protobuf:"bytes,1,opt,name=rejected,proto3,oneof"`
+}
+
+type IsAddressInNetworkResponse_Peer struct {
+	Peer *PeerInformation `protobuf:"bytes,2,opt,name=peer,proto3,oneof"`
+}
+
+func (*IsAddressInNetworkResponse_Rejected) isIsAddressInNetworkResponse_Msg() {}
+
+func (*IsAddressInNetworkResponse_Peer) isIsAddressInNetworkResponse_Msg() {}
+
+type PeerInformation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WireAddress   string                 `protobuf:"bytes,1,opt,name=wire_address,json=wireAddress,proto3" json:"wire_address,omitempty"` // peer addres in perun network
+	Assets        []*Asset               `protobuf:"bytes,2,rep,name=assets,proto3" json:"assets,omitempty"`                              // assets the peer has in his/her ledger channel
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PeerInformation) Reset() {
+	*x = PeerInformation{}
+	mi := &file_hub_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PeerInformation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PeerInformation) ProtoMessage() {}
+
+func (x *PeerInformation) ProtoReflect() protoreflect.Message {
+	mi := &file_hub_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PeerInformation.ProtoReflect.Descriptor instead.
+func (*PeerInformation) Descriptor() ([]byte, []int) {
+	return file_hub_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PeerInformation) GetWireAddress() string {
+	if x != nil {
+		return x.WireAddress
+	}
+	return ""
+}
+
+func (x *PeerInformation) GetAssets() []*Asset {
+	if x != nil {
+		return x.Assets
+	}
+	return nil
 }
 
 type GetPaymentAddrRequest struct {
@@ -287,7 +377,7 @@ type GetPaymentAddrRequest struct {
 
 func (x *GetPaymentAddrRequest) Reset() {
 	*x = GetPaymentAddrRequest{}
-	mi := &file_hub_proto_msgTypes[6]
+	mi := &file_hub_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -299,7 +389,7 @@ func (x *GetPaymentAddrRequest) String() string {
 func (*GetPaymentAddrRequest) ProtoMessage() {}
 
 func (x *GetPaymentAddrRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[6]
+	mi := &file_hub_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -312,7 +402,7 @@ func (x *GetPaymentAddrRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentAddrRequest.ProtoReflect.Descriptor instead.
 func (*GetPaymentAddrRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{6}
+	return file_hub_proto_rawDescGZIP(), []int{7}
 }
 
 type GetPaymentAddrResponse struct {
@@ -324,7 +414,7 @@ type GetPaymentAddrResponse struct {
 
 func (x *GetPaymentAddrResponse) Reset() {
 	*x = GetPaymentAddrResponse{}
-	mi := &file_hub_proto_msgTypes[7]
+	mi := &file_hub_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -336,7 +426,7 @@ func (x *GetPaymentAddrResponse) String() string {
 func (*GetPaymentAddrResponse) ProtoMessage() {}
 
 func (x *GetPaymentAddrResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[7]
+	mi := &file_hub_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -349,7 +439,7 @@ func (x *GetPaymentAddrResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentAddrResponse.ProtoReflect.Descriptor instead.
 func (*GetPaymentAddrResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{7}
+	return file_hub_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetPaymentAddrResponse) GetPaymentAddress() string {
@@ -369,7 +459,7 @@ type GetFeesRequest struct {
 
 func (x *GetFeesRequest) Reset() {
 	*x = GetFeesRequest{}
-	mi := &file_hub_proto_msgTypes[8]
+	mi := &file_hub_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +471,7 @@ func (x *GetFeesRequest) String() string {
 func (*GetFeesRequest) ProtoMessage() {}
 
 func (x *GetFeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[8]
+	mi := &file_hub_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,7 +484,7 @@ func (x *GetFeesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeesRequest.ProtoReflect.Descriptor instead.
 func (*GetFeesRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{8}
+	return file_hub_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetFeesRequest) GetAssetsToFund() []*AssetAmount {
@@ -414,7 +504,7 @@ type AssetAmount struct {
 
 func (x *AssetAmount) Reset() {
 	*x = AssetAmount{}
-	mi := &file_hub_proto_msgTypes[9]
+	mi := &file_hub_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -426,7 +516,7 @@ func (x *AssetAmount) String() string {
 func (*AssetAmount) ProtoMessage() {}
 
 func (x *AssetAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[9]
+	mi := &file_hub_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -439,7 +529,7 @@ func (x *AssetAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetAmount.ProtoReflect.Descriptor instead.
 func (*AssetAmount) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{9}
+	return file_hub_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AssetAmount) GetAsset() *Asset {
@@ -467,7 +557,7 @@ type GetFeesResponse struct {
 
 func (x *GetFeesResponse) Reset() {
 	*x = GetFeesResponse{}
-	mi := &file_hub_proto_msgTypes[10]
+	mi := &file_hub_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +569,7 @@ func (x *GetFeesResponse) String() string {
 func (*GetFeesResponse) ProtoMessage() {}
 
 func (x *GetFeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[10]
+	mi := &file_hub_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +582,7 @@ func (x *GetFeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFeesResponse.ProtoReflect.Descriptor instead.
 func (*GetFeesResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{10}
+	return file_hub_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetFeesResponse) GetAssetFees() []*AssetFee {
@@ -513,7 +603,7 @@ type AssetFee struct {
 
 func (x *AssetFee) Reset() {
 	*x = AssetFee{}
-	mi := &file_hub_proto_msgTypes[11]
+	mi := &file_hub_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -525,7 +615,7 @@ func (x *AssetFee) String() string {
 func (*AssetFee) ProtoMessage() {}
 
 func (x *AssetFee) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[11]
+	mi := &file_hub_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -538,7 +628,7 @@ func (x *AssetFee) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetFee.ProtoReflect.Descriptor instead.
 func (*AssetFee) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{11}
+	return file_hub_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AssetFee) GetAsset() *Asset {
@@ -565,7 +655,7 @@ type GetChannelsRequest struct {
 
 func (x *GetChannelsRequest) Reset() {
 	*x = GetChannelsRequest{}
-	mi := &file_hub_proto_msgTypes[12]
+	mi := &file_hub_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -577,7 +667,7 @@ func (x *GetChannelsRequest) String() string {
 func (*GetChannelsRequest) ProtoMessage() {}
 
 func (x *GetChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[12]
+	mi := &file_hub_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -590,7 +680,7 @@ func (x *GetChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChannelsRequest.ProtoReflect.Descriptor instead.
 func (*GetChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{12}
+	return file_hub_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetChannelsRequest) GetRequester() []byte {
@@ -613,7 +703,7 @@ type GetChannelsResponse struct {
 
 func (x *GetChannelsResponse) Reset() {
 	*x = GetChannelsResponse{}
-	mi := &file_hub_proto_msgTypes[13]
+	mi := &file_hub_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -625,7 +715,7 @@ func (x *GetChannelsResponse) String() string {
 func (*GetChannelsResponse) ProtoMessage() {}
 
 func (x *GetChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[13]
+	mi := &file_hub_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -638,7 +728,7 @@ func (x *GetChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChannelsResponse.ProtoReflect.Descriptor instead.
 func (*GetChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{13}
+	return file_hub_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetChannelsResponse) GetMsg() isGetChannelsResponse_Msg {
@@ -693,7 +783,7 @@ type ChannelStates struct {
 
 func (x *ChannelStates) Reset() {
 	*x = ChannelStates{}
-	mi := &file_hub_proto_msgTypes[14]
+	mi := &file_hub_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -705,7 +795,7 @@ func (x *ChannelStates) String() string {
 func (*ChannelStates) ProtoMessage() {}
 
 func (x *ChannelStates) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[14]
+	mi := &file_hub_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -718,7 +808,7 @@ func (x *ChannelStates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelStates.ProtoReflect.Descriptor instead.
 func (*ChannelStates) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{14}
+	return file_hub_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ChannelStates) GetStates() []*protobuf.State {
@@ -745,7 +835,7 @@ type ChannelUpdateRequest struct {
 
 func (x *ChannelUpdateRequest) Reset() {
 	*x = ChannelUpdateRequest{}
-	mi := &file_hub_proto_msgTypes[15]
+	mi := &file_hub_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -757,7 +847,7 @@ func (x *ChannelUpdateRequest) String() string {
 func (*ChannelUpdateRequest) ProtoMessage() {}
 
 func (x *ChannelUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[15]
+	mi := &file_hub_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -770,7 +860,7 @@ func (x *ChannelUpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelUpdateRequest.ProtoReflect.Descriptor instead.
 func (*ChannelUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{15}
+	return file_hub_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ChannelUpdateRequest) GetState() *protobuf.State {
@@ -792,7 +882,7 @@ type SuccessfulUpdate struct {
 
 func (x *SuccessfulUpdate) Reset() {
 	*x = SuccessfulUpdate{}
-	mi := &file_hub_proto_msgTypes[16]
+	mi := &file_hub_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -804,7 +894,7 @@ func (x *SuccessfulUpdate) String() string {
 func (*SuccessfulUpdate) ProtoMessage() {}
 
 func (x *SuccessfulUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[16]
+	mi := &file_hub_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -817,7 +907,7 @@ func (x *SuccessfulUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessfulUpdate.ProtoReflect.Descriptor instead.
 func (*SuccessfulUpdate) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{16}
+	return file_hub_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SuccessfulUpdate) GetState() *protobuf.State {
@@ -847,7 +937,7 @@ type ChannelUpdateResponse struct {
 
 func (x *ChannelUpdateResponse) Reset() {
 	*x = ChannelUpdateResponse{}
-	mi := &file_hub_proto_msgTypes[17]
+	mi := &file_hub_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -859,7 +949,7 @@ func (x *ChannelUpdateResponse) String() string {
 func (*ChannelUpdateResponse) ProtoMessage() {}
 
 func (x *ChannelUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[17]
+	mi := &file_hub_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -872,7 +962,7 @@ func (x *ChannelUpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelUpdateResponse.ProtoReflect.Descriptor instead.
 func (*ChannelUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{17}
+	return file_hub_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ChannelUpdateResponse) GetMsg() isChannelUpdateResponse_Msg {
@@ -926,7 +1016,7 @@ type ChannelCloseRequest struct {
 
 func (x *ChannelCloseRequest) Reset() {
 	*x = ChannelCloseRequest{}
-	mi := &file_hub_proto_msgTypes[18]
+	mi := &file_hub_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -938,7 +1028,7 @@ func (x *ChannelCloseRequest) String() string {
 func (*ChannelCloseRequest) ProtoMessage() {}
 
 func (x *ChannelCloseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[18]
+	mi := &file_hub_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -951,7 +1041,7 @@ func (x *ChannelCloseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelCloseRequest.ProtoReflect.Descriptor instead.
 func (*ChannelCloseRequest) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{18}
+	return file_hub_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ChannelCloseRequest) GetChannelId() []byte {
@@ -971,7 +1061,7 @@ type SuccessfulClose struct {
 
 func (x *SuccessfulClose) Reset() {
 	*x = SuccessfulClose{}
-	mi := &file_hub_proto_msgTypes[19]
+	mi := &file_hub_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +1073,7 @@ func (x *SuccessfulClose) String() string {
 func (*SuccessfulClose) ProtoMessage() {}
 
 func (x *SuccessfulClose) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[19]
+	mi := &file_hub_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +1086,7 @@ func (x *SuccessfulClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SuccessfulClose.ProtoReflect.Descriptor instead.
 func (*SuccessfulClose) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{19}
+	return file_hub_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SuccessfulClose) GetChannelId() []byte {
@@ -1019,7 +1109,7 @@ type ChannelCloseResponse struct {
 
 func (x *ChannelCloseResponse) Reset() {
 	*x = ChannelCloseResponse{}
-	mi := &file_hub_proto_msgTypes[20]
+	mi := &file_hub_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1121,7 @@ func (x *ChannelCloseResponse) String() string {
 func (*ChannelCloseResponse) ProtoMessage() {}
 
 func (x *ChannelCloseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hub_proto_msgTypes[20]
+	mi := &file_hub_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1134,7 @@ func (x *ChannelCloseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelCloseResponse.ProtoReflect.Descriptor instead.
 func (*ChannelCloseResponse) Descriptor() ([]byte, []int) {
-	return file_hub_proto_rawDescGZIP(), []int{20}
+	return file_hub_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ChannelCloseResponse) GetMsg() isChannelCloseResponse_Msg {
@@ -1100,11 +1190,16 @@ const file_hub_proto_rawDesc = "" +
 	"\x05asset\x18\x01 \x01(\fR\x05asset\"\x17\n" +
 	"\x15GetAssetsByHubRequest\"?\n" +
 	"\x16GetAssetsByHubResponse\x12%\n" +
-	"\x06assets\x18\x01 \x03(\v2\r.vc_hub.AssetR\x06assets\"9\n" +
-	"\x1dIsParticipantInNetworkRequest\x12\x18\n" +
-	"\aaddress\x18\x01 \x01(\tR\aaddress\"D\n" +
-	"\x1eIsParticipantInNetworkResponse\x12\"\n" +
-	"\ris_in_network\x18\x01 \x01(\bR\visInNetwork\"\x17\n" +
+	"\x06assets\x18\x01 \x03(\v2\r.vc_hub.AssetR\x06assets\"5\n" +
+	"\x19IsAddressInNetworkRequest\x12\x18\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\"\x82\x01\n" +
+	"\x1aIsAddressInNetworkResponse\x12.\n" +
+	"\brejected\x18\x01 \x01(\v2\x10.vc_hub.RejectedH\x00R\brejected\x12-\n" +
+	"\x04peer\x18\x02 \x01(\v2\x17.vc_hub.PeerInformationH\x00R\x04peerB\x05\n" +
+	"\x03msg\"[\n" +
+	"\x0fPeerInformation\x12!\n" +
+	"\fwire_address\x18\x01 \x01(\tR\vwireAddress\x12%\n" +
+	"\x06assets\x18\x02 \x03(\v2\r.vc_hub.AssetR\x06assets\"\x17\n" +
 	"\x15GetPaymentAddrRequest\"A\n" +
 	"\x16GetPaymentAddrResponse\x12'\n" +
 	"\x0fpayment_address\x18\x01 \x01(\tR\x0epaymentAddress\"K\n" +
@@ -1148,11 +1243,11 @@ const file_hub_proto_rawDesc = "" +
 	"\x14ChannelCloseResponse\x12.\n" +
 	"\brejected\x18\x01 \x01(\v2\x10.vc_hub.RejectedH\x00R\brejected\x12/\n" +
 	"\x05close\x18\x02 \x01(\v2\x17.vc_hub.SuccessfulCloseH\x00R\x05closeB\x05\n" +
-	"\x03msg2\xb9\x04\n" +
+	"\x03msg2\xad\x04\n" +
 	"\fVCHubService\x12O\n" +
 	"\x0eGetAssetsByHub\x12\x1d.vc_hub.GetAssetsByHubRequest\x1a\x1e.vc_hub.GetAssetsByHubResponse\x12:\n" +
-	"\aGetFees\x12\x16.vc_hub.GetFeesRequest\x1a\x17.vc_hub.GetFeesResponse\x12g\n" +
-	"\x16IsParticipantInNetwork\x12%.vc_hub.IsParticipantInNetworkRequest\x1a&.vc_hub.IsParticipantInNetworkResponse\x12R\n" +
+	"\aGetFees\x12\x16.vc_hub.GetFeesRequest\x1a\x17.vc_hub.GetFeesResponse\x12[\n" +
+	"\x12IsAddressInNetwork\x12!.vc_hub.IsAddressInNetworkRequest\x1a\".vc_hub.IsAddressInNetworkResponse\x12R\n" +
 	"\x11GetPaymentAddress\x12\x1d.vc_hub.GetPaymentAddrRequest\x1a\x1e.vc_hub.GetPaymentAddrResponse\x12L\n" +
 	"\rUpdateChannel\x12\x1c.vc_hub.ChannelUpdateRequest\x1a\x1d.vc_hub.ChannelUpdateResponse\x12I\n" +
 	"\fCloseChannel\x12\x1b.vc_hub.ChannelCloseRequest\x1a\x1c.vc_hub.ChannelCloseResponse\x12F\n" +
@@ -1170,65 +1265,69 @@ func file_hub_proto_rawDescGZIP() []byte {
 	return file_hub_proto_rawDescData
 }
 
-var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_hub_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_hub_proto_goTypes = []any{
-	(*Rejected)(nil),                       // 0: vc_hub.Rejected
-	(*Asset)(nil),                          // 1: vc_hub.Asset
-	(*GetAssetsByHubRequest)(nil),          // 2: vc_hub.GetAssetsByHubRequest
-	(*GetAssetsByHubResponse)(nil),         // 3: vc_hub.GetAssetsByHubResponse
-	(*IsParticipantInNetworkRequest)(nil),  // 4: vc_hub.IsParticipantInNetworkRequest
-	(*IsParticipantInNetworkResponse)(nil), // 5: vc_hub.IsParticipantInNetworkResponse
-	(*GetPaymentAddrRequest)(nil),          // 6: vc_hub.GetPaymentAddrRequest
-	(*GetPaymentAddrResponse)(nil),         // 7: vc_hub.GetPaymentAddrResponse
-	(*GetFeesRequest)(nil),                 // 8: vc_hub.GetFeesRequest
-	(*AssetAmount)(nil),                    // 9: vc_hub.AssetAmount
-	(*GetFeesResponse)(nil),                // 10: vc_hub.GetFeesResponse
-	(*AssetFee)(nil),                       // 11: vc_hub.AssetFee
-	(*GetChannelsRequest)(nil),             // 12: vc_hub.GetChannelsRequest
-	(*GetChannelsResponse)(nil),            // 13: vc_hub.GetChannelsResponse
-	(*ChannelStates)(nil),                  // 14: vc_hub.ChannelStates
-	(*ChannelUpdateRequest)(nil),           // 15: vc_hub.ChannelUpdateRequest
-	(*SuccessfulUpdate)(nil),               // 16: vc_hub.SuccessfulUpdate
-	(*ChannelUpdateResponse)(nil),          // 17: vc_hub.ChannelUpdateResponse
-	(*ChannelCloseRequest)(nil),            // 18: vc_hub.ChannelCloseRequest
-	(*SuccessfulClose)(nil),                // 19: vc_hub.SuccessfulClose
-	(*ChannelCloseResponse)(nil),           // 20: vc_hub.ChannelCloseResponse
-	(*protobuf.State)(nil),                 // 21: perunwire.State
+	(*Rejected)(nil),                   // 0: vc_hub.Rejected
+	(*Asset)(nil),                      // 1: vc_hub.Asset
+	(*GetAssetsByHubRequest)(nil),      // 2: vc_hub.GetAssetsByHubRequest
+	(*GetAssetsByHubResponse)(nil),     // 3: vc_hub.GetAssetsByHubResponse
+	(*IsAddressInNetworkRequest)(nil),  // 4: vc_hub.IsAddressInNetworkRequest
+	(*IsAddressInNetworkResponse)(nil), // 5: vc_hub.IsAddressInNetworkResponse
+	(*PeerInformation)(nil),            // 6: vc_hub.PeerInformation
+	(*GetPaymentAddrRequest)(nil),      // 7: vc_hub.GetPaymentAddrRequest
+	(*GetPaymentAddrResponse)(nil),     // 8: vc_hub.GetPaymentAddrResponse
+	(*GetFeesRequest)(nil),             // 9: vc_hub.GetFeesRequest
+	(*AssetAmount)(nil),                // 10: vc_hub.AssetAmount
+	(*GetFeesResponse)(nil),            // 11: vc_hub.GetFeesResponse
+	(*AssetFee)(nil),                   // 12: vc_hub.AssetFee
+	(*GetChannelsRequest)(nil),         // 13: vc_hub.GetChannelsRequest
+	(*GetChannelsResponse)(nil),        // 14: vc_hub.GetChannelsResponse
+	(*ChannelStates)(nil),              // 15: vc_hub.ChannelStates
+	(*ChannelUpdateRequest)(nil),       // 16: vc_hub.ChannelUpdateRequest
+	(*SuccessfulUpdate)(nil),           // 17: vc_hub.SuccessfulUpdate
+	(*ChannelUpdateResponse)(nil),      // 18: vc_hub.ChannelUpdateResponse
+	(*ChannelCloseRequest)(nil),        // 19: vc_hub.ChannelCloseRequest
+	(*SuccessfulClose)(nil),            // 20: vc_hub.SuccessfulClose
+	(*ChannelCloseResponse)(nil),       // 21: vc_hub.ChannelCloseResponse
+	(*protobuf.State)(nil),             // 22: perunwire.State
 }
 var file_hub_proto_depIdxs = []int32{
 	1,  // 0: vc_hub.GetAssetsByHubResponse.assets:type_name -> vc_hub.Asset
-	9,  // 1: vc_hub.GetFeesRequest.assets_to_fund:type_name -> vc_hub.AssetAmount
-	1,  // 2: vc_hub.AssetAmount.asset:type_name -> vc_hub.Asset
-	11, // 3: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
-	1,  // 4: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
-	0,  // 5: vc_hub.GetChannelsResponse.rejected:type_name -> vc_hub.Rejected
-	14, // 6: vc_hub.GetChannelsResponse.channel_states:type_name -> vc_hub.ChannelStates
-	21, // 7: vc_hub.ChannelStates.states:type_name -> perunwire.State
-	21, // 8: vc_hub.ChannelUpdateRequest.state:type_name -> perunwire.State
-	21, // 9: vc_hub.SuccessfulUpdate.state:type_name -> perunwire.State
-	0,  // 10: vc_hub.ChannelUpdateResponse.rejected:type_name -> vc_hub.Rejected
-	16, // 11: vc_hub.ChannelUpdateResponse.update:type_name -> vc_hub.SuccessfulUpdate
-	0,  // 12: vc_hub.ChannelCloseResponse.rejected:type_name -> vc_hub.Rejected
-	19, // 13: vc_hub.ChannelCloseResponse.close:type_name -> vc_hub.SuccessfulClose
-	2,  // 14: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
-	8,  // 15: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
-	4,  // 16: vc_hub.VCHubService.IsParticipantInNetwork:input_type -> vc_hub.IsParticipantInNetworkRequest
-	6,  // 17: vc_hub.VCHubService.GetPaymentAddress:input_type -> vc_hub.GetPaymentAddrRequest
-	15, // 18: vc_hub.VCHubService.UpdateChannel:input_type -> vc_hub.ChannelUpdateRequest
-	18, // 19: vc_hub.VCHubService.CloseChannel:input_type -> vc_hub.ChannelCloseRequest
-	12, // 20: vc_hub.VCHubService.GetChannels:input_type -> vc_hub.GetChannelsRequest
-	3,  // 21: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
-	10, // 22: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
-	5,  // 23: vc_hub.VCHubService.IsParticipantInNetwork:output_type -> vc_hub.IsParticipantInNetworkResponse
-	7,  // 24: vc_hub.VCHubService.GetPaymentAddress:output_type -> vc_hub.GetPaymentAddrResponse
-	17, // 25: vc_hub.VCHubService.UpdateChannel:output_type -> vc_hub.ChannelUpdateResponse
-	20, // 26: vc_hub.VCHubService.CloseChannel:output_type -> vc_hub.ChannelCloseResponse
-	13, // 27: vc_hub.VCHubService.GetChannels:output_type -> vc_hub.GetChannelsResponse
-	21, // [21:28] is the sub-list for method output_type
-	14, // [14:21] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	0,  // 1: vc_hub.IsAddressInNetworkResponse.rejected:type_name -> vc_hub.Rejected
+	6,  // 2: vc_hub.IsAddressInNetworkResponse.peer:type_name -> vc_hub.PeerInformation
+	1,  // 3: vc_hub.PeerInformation.assets:type_name -> vc_hub.Asset
+	10, // 4: vc_hub.GetFeesRequest.assets_to_fund:type_name -> vc_hub.AssetAmount
+	1,  // 5: vc_hub.AssetAmount.asset:type_name -> vc_hub.Asset
+	12, // 6: vc_hub.GetFeesResponse.asset_fees:type_name -> vc_hub.AssetFee
+	1,  // 7: vc_hub.AssetFee.asset:type_name -> vc_hub.Asset
+	0,  // 8: vc_hub.GetChannelsResponse.rejected:type_name -> vc_hub.Rejected
+	15, // 9: vc_hub.GetChannelsResponse.channel_states:type_name -> vc_hub.ChannelStates
+	22, // 10: vc_hub.ChannelStates.states:type_name -> perunwire.State
+	22, // 11: vc_hub.ChannelUpdateRequest.state:type_name -> perunwire.State
+	22, // 12: vc_hub.SuccessfulUpdate.state:type_name -> perunwire.State
+	0,  // 13: vc_hub.ChannelUpdateResponse.rejected:type_name -> vc_hub.Rejected
+	17, // 14: vc_hub.ChannelUpdateResponse.update:type_name -> vc_hub.SuccessfulUpdate
+	0,  // 15: vc_hub.ChannelCloseResponse.rejected:type_name -> vc_hub.Rejected
+	20, // 16: vc_hub.ChannelCloseResponse.close:type_name -> vc_hub.SuccessfulClose
+	2,  // 17: vc_hub.VCHubService.GetAssetsByHub:input_type -> vc_hub.GetAssetsByHubRequest
+	9,  // 18: vc_hub.VCHubService.GetFees:input_type -> vc_hub.GetFeesRequest
+	4,  // 19: vc_hub.VCHubService.IsAddressInNetwork:input_type -> vc_hub.IsAddressInNetworkRequest
+	7,  // 20: vc_hub.VCHubService.GetPaymentAddress:input_type -> vc_hub.GetPaymentAddrRequest
+	16, // 21: vc_hub.VCHubService.UpdateChannel:input_type -> vc_hub.ChannelUpdateRequest
+	19, // 22: vc_hub.VCHubService.CloseChannel:input_type -> vc_hub.ChannelCloseRequest
+	13, // 23: vc_hub.VCHubService.GetChannels:input_type -> vc_hub.GetChannelsRequest
+	3,  // 24: vc_hub.VCHubService.GetAssetsByHub:output_type -> vc_hub.GetAssetsByHubResponse
+	11, // 25: vc_hub.VCHubService.GetFees:output_type -> vc_hub.GetFeesResponse
+	5,  // 26: vc_hub.VCHubService.IsAddressInNetwork:output_type -> vc_hub.IsAddressInNetworkResponse
+	8,  // 27: vc_hub.VCHubService.GetPaymentAddress:output_type -> vc_hub.GetPaymentAddrResponse
+	18, // 28: vc_hub.VCHubService.UpdateChannel:output_type -> vc_hub.ChannelUpdateResponse
+	21, // 29: vc_hub.VCHubService.CloseChannel:output_type -> vc_hub.ChannelCloseResponse
+	14, // 30: vc_hub.VCHubService.GetChannels:output_type -> vc_hub.GetChannelsResponse
+	24, // [24:31] is the sub-list for method output_type
+	17, // [17:24] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_hub_proto_init() }
@@ -1236,15 +1335,19 @@ func file_hub_proto_init() {
 	if File_hub_proto != nil {
 		return
 	}
-	file_hub_proto_msgTypes[13].OneofWrappers = []any{
+	file_hub_proto_msgTypes[5].OneofWrappers = []any{
+		(*IsAddressInNetworkResponse_Rejected)(nil),
+		(*IsAddressInNetworkResponse_Peer)(nil),
+	}
+	file_hub_proto_msgTypes[14].OneofWrappers = []any{
 		(*GetChannelsResponse_Rejected)(nil),
 		(*GetChannelsResponse_ChannelStates)(nil),
 	}
-	file_hub_proto_msgTypes[17].OneofWrappers = []any{
+	file_hub_proto_msgTypes[18].OneofWrappers = []any{
 		(*ChannelUpdateResponse_Rejected)(nil),
 		(*ChannelUpdateResponse_Update)(nil),
 	}
-	file_hub_proto_msgTypes[20].OneofWrappers = []any{
+	file_hub_proto_msgTypes[21].OneofWrappers = []any{
 		(*ChannelCloseResponse_Rejected)(nil),
 		(*ChannelCloseResponse_Close)(nil),
 	}
@@ -1254,7 +1357,7 @@ func file_hub_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hub_proto_rawDesc), len(file_hub_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

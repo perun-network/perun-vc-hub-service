@@ -10,7 +10,7 @@ service VCHubService{
     // VC-Hub related RPCs
     rpc GetAssetsByHub(GetAssetsByHubRequest) returns (GetAssetsByHubResponse);
     rpc GetFees(GetFeesRequest) returns (GetFeesResponse);
-    rpc IsParticipantInNetwork(IsParticipantInNetworkRequest) returns (IsParticipantInNetworkResponse);
+    rpc IsAddressInNetwork(IsAddressInNetworkRequest) returns (IsAddressInNetworkResponse);
     rpc GetPaymentAddress(GetPaymentAddrRequest) returns (GetPaymentAddrResponse);
 
     // Perun related RPCs
@@ -33,12 +33,20 @@ message GetAssetsByHubResponse{
     repeated Asset assets = 1;
 }
 
-message IsParticipantInNetworkRequest{
+message IsAddressInNetworkRequest{
     string address = 1;
 }
 
-message IsParticipantInNetworkResponse{
-    bool is_in_network = 1;
+message IsAddressInNetworkResponse{
+    oneof msg{
+        Rejected rejected = 1;
+        PeerInformation  peer = 2;
+    }
+}
+
+message PeerInformation {
+    string wire_address = 1;      // peer addres in perun network
+    repeated Asset assets = 2;    // assets the peer has in his/her ledger channel
 }
 
 // // encoded big.Int in bytes
